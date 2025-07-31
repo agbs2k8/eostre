@@ -1,0 +1,28 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+quart = ">=0.19.9"
+Hypercorn = ">=0.17.3"
+werkzeug = ">=3.0.6"
+quart-sqlalchemy = ">=3.0.4"
+SQLAlchemy = ">=2.0.41"
+quart-auth = ">=0.11.0"
+PyJWT = ">=2.10.1"
+cryptography = ">=45.0.5"
+
+
+[dev-packages]
+pytest = ">=8.4.1"
+pytest-mock = ">=3.14.1"
+requests = ">=2.32.4"
+pytest-asyncio = ">=1.1.0"
+httpx = ">=0.28.1"
+
+[requires]
+python_version = "3.13"
+
+[scripts]
+production = "gunicorn --workers=4 --bind 0.0.0.0:8080 --timeout 1800 --access-logfile - api.main:app"
