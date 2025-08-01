@@ -181,7 +181,7 @@ class User(Base):
         return result.scalars().first()
 
     @staticmethod
-    async def login(name: str, password: str, db_session):
+    async def username_login(name: str, password: str, db_session):
         """
         Log in a user by checking their name and password.
         :param name: The name of the user.
@@ -194,7 +194,22 @@ class User(Base):
         if user and user.check_password(password):
             return user
         return None
-    
+
+    @staticmethod 
+    async def email_login(email: str, password: str, db_session):
+        """
+        Log in a user by checking their email and password.
+        :param email: The email of the user.
+        :param password: The password to check.
+        :param db_session: The database session to use for the query.
+        :return: User object if login is successful, None otherwise.
+        """
+        result = await db_session.execute(sa.select(User).join(Email).where(Email.email == email))
+        user = result.scalars().first()
+        if user and user.check_password(password):
+            return user
+        return None
+
     @staticmethod
     async def get(user_id, db_session):
         """
@@ -213,6 +228,19 @@ class User(Base):
         """
         result = await db_session.execute(sa.select(Grant).where(Grant.user_id == self.id, Grant.active == True))
         return result.scalars().all()
+    
+    async def get_permissions(self, db_session):
+        """
+        Get all permissions for the user.
+        :param db_session: The database session to use for the query.
+        :return: List of Permission objects associated with the user.
+        """
+        grants = await self.get_grants(db_session)
+        permissions = []
+        for grant in grants:
+            if grant.role:
+                permissions.extend(grant.role.permissions)
+        return list(set(permissions))
 
 
 class Grant(Base):

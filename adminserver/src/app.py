@@ -3,7 +3,7 @@ from quart import Quart, g
 from quart_schema import QuartSchema
 # Imports from within the project
 import config as cfg
-from src.api.routes import api_bp
+from src.api.v1.routes import api_v1_bp
 from src.auth.routes import auth_bp
 from src.db import AsyncSessionLocal, setup_db
 
@@ -22,7 +22,7 @@ def create_app():
     
     # Blueprints
     app.register_blueprint(auth_bp)
-    app.register_blueprint(api_bp)
+    app.register_blueprint(api_v1_bp)
 
     # Schema
     QuartSchema(app, convert_casing=True)

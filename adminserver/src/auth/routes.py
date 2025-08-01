@@ -3,7 +3,7 @@ from quart import Blueprint, request, jsonify, g
 from quart_schema import validate_request, validate_response
 from src.services.auth_manager import auth_manager
 from src.models.models import User
-from src.services.schema import UserInput
+from src.services.schema import UserInput, RefreshTokenInput
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -13,9 +13,16 @@ async def login():
     data = await request.get_json()
     username = data.get("username")
     password = data.get("password")
+    email = data.get("email")
 
     session = g.db_session
-    user = await User.login(username, password, session)
+    if username: 
+        user = await User.username_login(username, password, session)
+    elif email:
+        user = await User.email_login(email, password, session)
+    else:
+        return jsonify({"error": "Username or email is required"}), 400
+    
     if not user:
         return jsonify({"error": "Invalid credentials"}), 401
 
@@ -40,6 +47,7 @@ async def login():
     return response
 
 
+@validate_request(RefreshTokenInput)
 @auth_bp.route("/refresh", methods=["POST"])
 async def refresh_token():
     token = (await request.get_json()).get("refresh_token")
