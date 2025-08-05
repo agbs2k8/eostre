@@ -9,8 +9,9 @@ class UserInput(pydantic.BaseModel):
     username: str = pydantic.Field(..., description="The username")
     password: str = pydantic.Field(..., description="The user-provided password")
     email: str = pydantic.Field(None, description="The user's email address")
+    account_id: str = pydantic.Field(None, description="The desired user account")
 
-# NOTE - TO USE A LIST OF UuserInput values, would need to do the following:
+# NOTE - TO USE A LIST OF UserInput values, would need to do the following:
 # from typing import List
 
 # @validate_request(List[Person])
@@ -39,6 +40,9 @@ class SignupRequest(BaseRequest):
     email: str
     password: str
     name: str
+
+class AccountRequired(BaseRequest):
+    account_id: str = pydantic.Field(..., description="The account ID for the request")
 
 
 # QUERY STRING EXAMPLE

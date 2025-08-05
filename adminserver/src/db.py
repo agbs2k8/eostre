@@ -31,14 +31,6 @@ role_permission_table = Table(
 )
 
 
-account_user_table = Table(
-    "account_user",
-    Base.metadata,
-    Column("account_id", Integer, ForeignKey("account.id"), primary_key=True),
-    Column("user_id", Integer, ForeignKey("user.id"), primary_key=True)
-)
-
-
 # Async context manager for session use
 @asynccontextmanager
 async def get_session():

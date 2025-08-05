@@ -1,23 +1,25 @@
-your_project/
-│
-├── src/
-│   ├── __init__.py
-│   ├── app.py                 # Entry point (creates the app)
-│   ├── auth/                 ← Authentication blueprint
-│   │   ├── __init__.py
-│   │   ├── routes.py
-│   │   └── utils.py
-│   ├── api/                  ← Main API blueprint
-│   │   ├── __init__.py
-│   │   └── routes.py
-│   ├── models/
-│   │   └── user.py, revoked_token.py, etc.
-│   ├── services/
-│   │   └── auth_manager.py   ← Your AuthManager class
-│   └── db.py                 ← Session, engine, Base, etc.
-│
-├── tests/
-│   └── test_auth.py, ...
-├── migrations/
-├── config.py
-└── main.py                   # Calls `create_app()`
+Registered blueprints: [
+    <QuartRule '/static/<filename>' (OPTIONS, HEAD, GET) -> static>, 
+    <QuartRule '/auth/login' (OPTIONS, POST) -> auth.login>, 
+    <QuartRule '/auth/refresh' (OPTIONS, POST) -> auth.refresh_token>, 
+    <QuartRule '/auth/switch_account' (OPTIONS, POST) -> auth.switch_account>, 
+    <QuartRule '/api/v1/liveness' (OPTIONS, HEAD, GET) -> api_v1.liveness>, 
+    <QuartRule '/api/v1/readiness' (OPTIONS, HEAD, GET) -> api_v1.readiness>, 
+    <QuartRule '/api/v1/account/user/' (OPTIONS, HEAD, GET) -> api_v1.account_v1.account_user_v1.get_account_users>, 
+    <QuartRule '/api/v1/user' (OPTIONS, HEAD, GET) -> api_v1.user_v1.get_users>, 
+    <QuartRule '/api/v1/user/' (OPTIONS, POST) -> api_v1.user_v1.add_user>, 
+    <QuartRule '/api/v1/user/' (OPTIONS, PUT) -> api_v1.user_v1.update_user>, 
+    <QuartRule '/api/v1/user/' (OPTIONS, DELETE) -> api_v1.user_v1.remove_user>, 
+    <QuartRule '/api/v1/user/me' (OPTIONS, HEAD, GET) -> api_v1.user_v1.get_me>, 
+    <QuartRule '/api/v1/user/me' (OPTIONS, PUT) -> api_v1.user_v1.update_me>, 
+    <QuartRule '/api/v1/user/me' (OPTIONS, PUT) -> api_v1.user_v1.delete_me>, 
+    <QuartRule '/api/v1/user/authorized_accounts' (OPTIONS, HEAD, GET) -> api_v1.user_v1.authorized_accounts>, 
+    <QuartRule '/api/v1/grant' (OPTIONS, POST) -> api_v1.grants_v1.grant_role>, 
+    <QuartRule '/api/v1/grant' (OPTIONS, PUT) -> api_v1.grants_v1.update_grant>, 
+    <QuartRule '/api/v1/grant' (OPTIONS, DELETE) -> api_v1.grants_v1.revoke_grant>, 
+    <QuartRule '/api/v1/role' (OPTIONS, HEAD, GET) -> api_v1.roles_v1.get_roles>, 
+    <QuartRule '/api/v1/role' (OPTIONS, POST) -> api_v1.roles_v1.create_role>,
+    <QuartRule '/api/v1/role' (OPTIONS, PUT) -> api_v1.roles_v1.update_role>, 
+    <QuartRule '/api/v1/role' (OPTIONS, DELETE) -> api_v1.roles_v1.delete_role>]
+
+[2025-08-04 18:06:14 -0500] [70347] [INFO] in app: Registered blueprints: [<QuartRule '/static/<filename>' (OPTIONS, HEAD, GET) -> static>, <QuartRule '/auth/login' (OPTIONS, POST) -> auth.login>, <QuartRule '/auth/refresh' (OPTIONS, POST) -> auth.refresh_token>, <QuartRule '/auth/switch_account' (OPTIONS, POST) -> auth.switch_account>, <QuartRule '/api/v1/liveness' (OPTIONS, HEAD, GET) -> api_v1.liveness>, <QuartRule '/api/v1/readiness' (OPTIONS, HEAD, GET) -> api_v1.readiness>, <QuartRule '/api/v1/account/user/' (OPTIONS, HEAD, GET) -> api_v1.account_v1.account_user_v1.get_account_users>, <QuartRule '/api/v1/user' (OPTIONS, HEAD, GET) -> api_v1.user_v1.get_users>, <QuartRule '/api/v1/user/' (OPTIONS, POST) -> api_v1.user_v1.add_user>, <QuartRule '/api/v1/user/' (OPTIONS, PUT) -> api_v1.user_v1.update_user>, <QuartRule '/api/v1/user/' (OPTIONS, DELETE) -> api_v1.user_v1.remove_user>, <QuartRule '/api/v1/user/me' (OPTIONS, HEAD, GET) -> api_v1.user_v1.get_me>, <QuartRule '/api/v1/user/me' (OPTIONS, PUT) -> api_v1.user_v1.update_me>, <QuartRule '/api/v1/user/me' (OPTIONS, PUT) -> api_v1.user_v1.delete_me>, <QuartRule '/api/v1/user/authorized_accounts' (OPTIONS, HEAD, GET) -> api_v1.user_v1.authorized_accounts>, <QuartRule '/api/v1/grant' (OPTIONS, POST) -> api_v1.grants_v1.grant_role>, <QuartRule '/api/v1/grant' (OPTIONS, PUT) -> api_v1.grants_v1.update_grant>, <QuartRule '/api/v1/grant' (OPTIONS, DELETE) -> api_v1.grants_v1.revoke_grant>, <QuartRule '/api/v1/role' (OPTIONS, HEAD, GET) -> api_v1.roles_v1.get_roles>, <QuartRule '/api/v1/role' (OPTIONS, POST) -> api_v1.roles_v1.create_role>, <QuartRule '/api/v1/role' (OPTIONS, PUT) -> api_v1.roles_v1.update_role>, <QuartRule '/api/v1/role' (OPTIONS, DELETE) -> api_v1.roles_v1.delete_role>]

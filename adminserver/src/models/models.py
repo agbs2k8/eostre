@@ -1,8 +1,11 @@
+import secrets
 import datetime
+from collections import defaultdict
 import sqlalchemy as sa 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from werkzeug.security import generate_password_hash, check_password_hash
-from src.db import Base, role_permission_table, account_user_table
+from src.db import Base, role_permission_table
+import config as cfg
 # TODO: Restore the tags object
 
 
@@ -17,11 +20,13 @@ class Account(Base):
     modified_date: Mapped[datetime.datetime] = mapped_column(
         default=datetime.datetime.now(tz=datetime.timezone.utc))
     deleted: Mapped[bool] = mapped_column(default=False)
-    users: Mapped[list["User"]] = relationship(secondary=account_user_table, back_populates='accounts')
     grants: Mapped[list['Grant']] = relationship('Grant', back_populates='account', foreign_keys='Grant.account_id')
 
     def __repr__(self):
         return f"Account(id={self.id!r}, name={self.name!r})"
+    
+    def __hash__(self):
+        return hash(self.id)
     
     async def to_dict(self):
         return {
@@ -32,6 +37,11 @@ class Account(Base):
             "created_date": self.created_date.isoformat(),
             "modified_date": self.modified_date.isoformat()
         }
+    
+    @staticmethod
+    async def get(account_id, db_session):
+        result = await db_session.execute(sa.select(Account).where(Account.id == account_id))
+        return result.scalars().first()
 
 
 class Permission(Base):
@@ -75,7 +85,9 @@ class Role(Base):
     modified_date: Mapped[datetime.datetime] = mapped_column(
         default=datetime.datetime.now(tz=datetime.timezone.utc))
     deleted: Mapped[bool] = mapped_column(default=False)
-    permissions: Mapped[list[Permission]] = relationship(secondary=role_permission_table, back_populates='roles')
+    permissions: Mapped[list[Permission]] = relationship(secondary=role_permission_table, 
+                                                         back_populates='roles',
+                                                         lazy='selectin')
 
     def __repr__(self):
         return f"Role(id={self.id!r}, name={self.name!r})"
@@ -90,6 +102,11 @@ class Role(Base):
             "modified_date": self.modified_date.isoformat(),
             "permissions": [permission.name for permission in self.permissions]
         }
+    
+    @staticmethod
+    async def get(role_id, db_session):
+        result = await db_session.execute(sa.select(Role).where(Role.id == role_id))
+        return result.scalars().first()
 
 
 class Email(Base):
@@ -105,6 +122,9 @@ class Email(Base):
 
     def __repr__(self):
         return f"Email(id={self.id!r}, email={self.email!r})"
+    
+    def __str__(self) -> str:
+        return str(self.email   )
 
 
 class User(Base):
@@ -123,8 +143,10 @@ class User(Base):
     modified_date: Mapped[datetime.datetime] = mapped_column(
         default=datetime.datetime.now(tz=datetime.timezone.utc))
     password: Mapped[str] = mapped_column(sa.String(255), nullable=False)
-    accounts: Mapped[list["Account"]] = relationship(secondary=account_user_table, back_populates='users')
-    grants: Mapped[list['Grant']] = relationship('Grant', back_populates='user', foreign_keys='Grant.user_id')
+    grants: Mapped[list['Grant']] = relationship('Grant', 
+                                                 back_populates='user', 
+                                                 foreign_keys='Grant.user_id', 
+                                                 lazy='selectin')
     deleted: Mapped[bool] = mapped_column(default=False)
 
     def __init__(self, name: str, password: str, email: str, 
@@ -147,6 +169,9 @@ class User(Base):
 
     def __repr__(self):
         return f"User(id={self.id!r}, name={self.name!r})"
+    
+    def __hash__(self):
+        return hash(self.id)
     
     def check_password(self, password: str) -> bool:
         """
@@ -236,11 +261,33 @@ class User(Base):
         :return: List of Permission objects associated with the user.
         """
         grants = await self.get_grants(db_session)
-        permissions = []
+        result = defaultdict(set)
         for grant in grants:
-            if grant.role:
-                permissions.extend(grant.role.permissions)
-        return list(set(permissions))
+            if grant.active and grant.account_id and grant.role:
+                for perm in grant.role.permissions:
+                    result[grant.account_id].add(perm.name)
+
+        return {account_id: sorted(list(perms)) for account_id, perms in result.items()}
+
+    async def get_authorized_accounts(self, db_session):
+        """
+        Get all accounts the user is authorized to access.
+        :param db_session: The database session to use for the query.
+        :return: List of Account objects the user is authorized to access.
+        """
+        grants = await self.get_grants(db_session)
+        result = []
+        for grant in grants:
+            result.append(grant.account)
+        return list(set(result))
+
+    async def grant_role(self, role_id: str, account_id: str, db_session):
+        role = await db_session.get(Role, role_id)
+        account = await db_session.get(Account, account_id)
+        grant = Grant(user=self, role=role, account=account)
+        db_session.add(grant)
+        await db_session.commit()
+        return grant
 
 
 class Grant(Base):
@@ -253,8 +300,11 @@ class Grant(Base):
     user_id: Mapped[int] = mapped_column(sa.ForeignKey("user.id"))
     user: Mapped[User] = relationship('User', back_populates='grants', foreign_keys=[user_id])
     account_id: Mapped[int] = mapped_column(sa.ForeignKey("account.id"), nullable=True)
-    account: Mapped[Account] = relationship('Account', back_populates='grants', foreign_keys=[account_id])
-    role: Mapped[Role] = relationship('Role')
+    account: Mapped[Account] = relationship('Account', 
+                                            back_populates='grants', 
+                                            foreign_keys=[account_id],
+                                            lazy='selectin')
+    role: Mapped[Role] = relationship('Role', lazy='selectin')
     revoked_date: Mapped[datetime.datetime] = mapped_column(
         nullable=True)
 
@@ -299,3 +349,33 @@ class Event(Base):
             "date": self.date.isoformat(),
             "user_id": self.user_id,
         }
+
+
+class UserInvite(Base):
+    __tablename__ = 'user_invite'
+    id: Mapped[int] = mapped_column(sa.Integer, sa.Identity(), primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(sa.ForeignKey("user.id"))
+    token: Mapped[str] = mapped_column(sa.String(255), unique=True, nullable=False)
+    invited_by_user_id: Mapped[int] = mapped_column(sa.ForeignKey("user.id"))
+    invite_date: Mapped[datetime.datetime] = mapped_column(
+        default=datetime.datetime.now(tz=datetime.timezone.utc))
+    accepted: Mapped[bool] = mapped_column(default=False)
+
+    def __repr__(self):
+        return f"UserInvite(id={self.id!r})"
+    
+    async def to_dict(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "invited_by_user_id": self.invited_by_user_id,
+            "invite_date": self.invite_date.isoformat(),
+            "accepted": self.accepted
+        }
+    
+    async def generate_url(self, db_session):
+        self.token = secrets.token_urlsafe(32)
+        db_session.add(self)
+        await db_session.commit()
+        return f"{cfg.APP_URL}/invite/{self.token}"
+        

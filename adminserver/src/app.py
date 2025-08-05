@@ -4,7 +4,7 @@ from quart_schema import QuartSchema
 # Imports from within the project
 import config as cfg
 from src.api.v1.routes import api_v1_bp
-from src.auth.routes import auth_bp
+from src.auth.auth import auth_bp
 from src.db import AsyncSessionLocal, setup_db
 
 # TODO - Add quart-schema and validate request & response data
@@ -23,6 +23,8 @@ def create_app():
     # Blueprints
     app.register_blueprint(auth_bp)
     app.register_blueprint(api_v1_bp)
+
+    logging.info(f"Registered blueprints: {[rule for rule in app.url_map.iter_rules()]}")
 
     # Schema
     QuartSchema(app, convert_casing=True)

@@ -66,13 +66,14 @@ class AuthManager:
             return wrapper
         return decorator
 
-    def require_roles(self, *required_roles):
+    def require_permissions(self, *required_permissions):
         def decorator(func):
             @wraps(func)
             async def wrapper(*args, **kwargs):
-                user_roles = g.user.get("roles", []) if hasattr(g, "user") else []
-                if not any(role in user_roles for role in required_roles):
-                    return {"error": "Forbidden - missing roles"}, 403
+                current_account = g.user["account_id"]
+                user_permissions = g.user["permissions"].get(str(current_account))
+                if not any(permission in user_permissions for permission in required_permissions):
+                    return {"error": "Forbidden - missing permissions"}, 403
                 return await func(*args, **kwargs)
             return wrapper
         return decorator

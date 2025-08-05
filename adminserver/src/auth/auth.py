@@ -1,11 +1,27 @@
 import jwt
 from quart import Blueprint, request, jsonify, g
 from quart_schema import validate_request, validate_response
+from sqlalchemy.ext.asyncio import AsyncSession
 from src.services.auth_manager import auth_manager
 from src.models.models import User
-from src.services.schema import UserInput, RefreshTokenInput
+from src.services.schema import UserInput, RefreshTokenInput, AccountRequired
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
+
+
+async def generate_user_payload(user: User, account_id: str, db_session: AsyncSession):
+    permissions = await user.get_permissions(db_session)
+    if account_id in permissions.keys():
+        return {
+            "sub": str(user.id),
+            "username": user.name,
+            "type": user.type,
+            "account_id": account_id,
+            "permissions": permissions
+        }
+    else:
+        raise ValueError("User does not have permissions for the specified account")
+
 
 @validate_request(UserInput)
 @auth_bp.route("/login", methods=["POST"])
@@ -14,6 +30,7 @@ async def login():
     username = data.get("username")
     password = data.get("password")
     email = data.get("email")
+    account_id = data.get("account")
 
     session = g.db_session
     if username: 
@@ -25,13 +42,14 @@ async def login():
     
     if not user:
         return jsonify({"error": "Invalid credentials"}), 401
-
-    user_data = {
-        "sub": str(user.id),
-        "username": user.name,
-        "type": user.type
-    }
-
+    
+    if not account_id: 
+        accounts = await user.get_authorized_accounts(session)
+        if not accounts:
+            return jsonify({"error": "No authorized accounts found"}), 403
+        account_id = accounts[0].id  # TODO - something more sophisticated
+    
+    user_data = await generate_user_payload(user, account_id, session)
     access_token = auth_manager.create_access_token(user_data)
     refresh_token = auth_manager.create_refresh_token(user_data)
 
@@ -62,14 +80,32 @@ async def refresh_token():
     except jwt.PyJWTError:
         return jsonify({"error": "Invalid or expired token"}), 401
 
-    # NOTE: Do not re-issue refresh token unless you're rotating them
-    new_access_token = auth_manager.create_access_token({
-        "sub": payload["sub"],
-        "username": payload["username"],
-        "type": payload["type"]
-    })
+    session = g.db_session
+    user = await User.get(payload["sub"], session)
+    
+    user_data = await generate_user_payload(user, payload['account_id'], session)
+    new_access_token = auth_manager.create_access_token(user_data)
 
     response = jsonify({"access_token": new_access_token})
     response.set_cookie("access_token", new_access_token, httponly=True, samesite="Strict", secure=True)
 
     return response
+
+
+@auth_bp.route("/switch_account", methods=["POST"])
+@validate_request(AccountRequired)
+@auth_manager.jwt_required()
+async def switch_account():
+    data = await request.get_json()
+    session = g.db_session
+
+    user = await User.get(g.user["sub"], session)
+    if not user:
+        return {"error": "User not found"}, 404
+
+    # When gathering the user-data from that function, we pull the user permissions
+    # from the database and ensure the account_id is in the keys of the permissions.
+    user_data = await generate_user_payload(user, data.get("account_id"), session)
+    new_token = auth_manager.create_access_token(user_data)
+
+    return jsonify({"access_token": new_token})
