@@ -209,3 +209,9 @@ __marimo__/
 # Draw.io files
 *.drawio.bkp
 .drawio.bkp
+
+# Cert Files
+*.pem
+.pem
+*.pem.pub
+.pem.pub

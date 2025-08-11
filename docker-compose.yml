@@ -1,0 +1,48 @@
+version: "3.9"
+
+services:
+  adminserver:
+    image: agbs2k8/adminserver:latest
+    build:
+      context: ./adminserver
+    container_name: adminserver
+    ports:
+      - "5000:8080"
+    env_file: ./adminserver/.env
+    volumes:
+      - ./adminserver/keys:/app/keys
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: fastapi_service
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./api/.env
+    volumes:
+      - ./adminserver/keys:/app/keys  # Mount the same PEM key directory
+    depends_on:
+      - mongo
+      - adminserver
+    restart: unless-stopped
+
+  mongo:
+    image: mongo:7.0
+    container_name: mongo_db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    restart: unless-stopped
+
+volumes:
+  mongo_data:

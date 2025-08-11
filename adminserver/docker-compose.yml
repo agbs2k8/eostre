@@ -1,0 +1,13 @@
+services:
+  adminserver:
+    image: agbs2k8/adminserver:latest
+    build:
+      context: .
+    ports:
+      - "5000:8080"
+    env_file: .env
+    volumes:
+      - "D:/Projects/eostre/adminserver/keys:/app/keys"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1

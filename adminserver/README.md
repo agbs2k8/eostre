@@ -62,35 +62,36 @@ This is an async python API built around quart.
 
 
 ## Deployment
-1. Build & run local docker image #TODO - FIX MONGOIMAGE STUFF
+1. Build & run local docker image 
 
-    `docker build -t agbs2k8/apiserv:latest .`
-    `docker run --env-file .env --add-host=mongoservice:127.0.0.1 -p 8080:8080 agbs2k8/apiserv:latest`
+    `pipenv install && docker build -t agbs2k8/adminserver:latest .`
+    `docker run --env-file .env -v "D:\Projects\eostre\adminserver\keys:/app/keys" -p 5000:8080 agbs2k8/adminserver:latest`
+    `docker compose up --build`
 
 2. If everything looks good, push it to Docker Hub so that k3d can pull it
 
-    `docker push agbs2k8/apiserv:latest`
+    `docker push agbs2k8/adminserver:latest`
 
 ### k3s (k3d locally) 
 1. Ensure that k3s can import the image
 
-    `k3d image import apiserv:latest -c <your-cluster-name>`
+    `k3d image import adminserver:latest -c <your-cluster-name>`
 
 2. Insert the secrets into the cluster
     
-    `kubectl create secret generic apiserv-secrets --from-env-file=.env`
+    `kubectl create secret generic adminserver-secrets --from-env-file=.env`
 
 3. Install the image using helm
 
-    `helm install apiserv ./ --values values.yaml`
+    `helm install adminserver ./ --values values.yaml`
 
 4. Upgrade an existing k3s image
 
-    `helm upgrade apiserv ./ --values values.yaml`
+    `helm upgrade adminserver ./ --values values.yaml`
 
 3. Connect to the service
 
-   `http://apiserv.local/api/v1/liveness`
+   `http://adminserver.local/api/v1/liveness`
 
 
 ## FAQ

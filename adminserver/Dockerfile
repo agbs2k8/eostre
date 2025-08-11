@@ -1,4 +1,4 @@
-FROM python:3.13-slim as base
+FROM python:3.13-slim AS base
 # Allow statements and log messages to immediately appear in the Knative logs
 ENV PYTHONUNBUFFERED True
 # Setup env
@@ -26,4 +26,4 @@ COPY . ./
 # Ensure that the app can find the config file
 ENV PYTHONPATH "${PYTHONPATH}:${APP_HOME}/src"
 # Run the API on container startup
-CMD exec hypercorn --bind :8080 --access-logfile - src.api.main:app
+CMD exec hypercorn --bind :8080 --access-logfile - main:app

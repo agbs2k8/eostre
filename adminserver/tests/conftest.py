@@ -67,12 +67,12 @@ from src.services.auth_manager import AuthManager
 
 @pytest.fixture(scope="session")
 def private_key():
-    return pathlib.Path(os.getenv("PRIVATE_KEY_PATH", "private_key.pem")).read_text()
+    return pathlib.Path(os.getenv("TEST_PRIVATE_KEY_PATH", "keys/test_key.pem")).read_text()
 
 
 @pytest.fixture(scope="session")
 def public_key():
-    return pathlib.Path(os.getenv("PUBLIC_KEY_PATH", "public_key.pem")).read_text()
+    return pathlib.Path(os.getenv("TEST_PUBLIC_KEY_PATH", "keys/test_key.pem.pub")).read_text()
 
 
 @pytest.fixture(scope="session")
