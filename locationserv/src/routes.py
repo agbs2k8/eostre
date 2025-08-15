@@ -27,7 +27,7 @@ async def list_locations_open(
                                              alias="id",
                                              title="Location IDs",
                                              description="A list of location IDs to filter by. If omitted, all active, non-deleted locations are returned.",
-                                             example=["cfdebdfC1843364b6FCe08BE", "cfdebdfC1843364b6FCe08BG"])
+                                             examples={"example_ids": {"value": ["64e4b2f2c9e77b2b8c8e4b2f"]}})
     #user: dict = fastapi.Depends(token_manager.require_permissions("account.read"))
 ):
     """
@@ -56,7 +56,7 @@ async def list_locations(
                                              alias="id",
                                              title="Location IDs",
                                              description="A list of location IDs to filter by. If omitted, all active, non-deleted locations are returned.",
-                                             example=["cfdebdfC1843364b6FCe08BE", "cfdebdfC1843364b6FCe08BG"]),
+                                             examples={"example_ids": {"value": ["64e4b2f2c9e77b2b8c8e4b2f"]}}),
     user: dict = fastapi.Depends(token_manager.require_permissions("account.read"))
 ):
     """

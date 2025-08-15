@@ -12,26 +12,22 @@ from src.helpers import drop_null_keys
 
 
 class PyObjectId(ObjectId):
-
     @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
+    def __get_pydantic_core_schema__(cls, source, handler):
+        from pydantic_core import core_schema
 
-    @classmethod
-    def validate(cls, v: Any, info=None) -> ObjectId:
-        if isinstance(v, ObjectId):
-            return v
-        if not ObjectId.is_valid(v):
-            raise ValueError(f"Invalid ObjectId: {v}")
-        return ObjectId(v)
+        def validate(value):
+            if isinstance(value, ObjectId):
+                return value
+            if not ObjectId.is_valid(value):
+                raise ValueError(f"Invalid ObjectId: {value}")
+            return ObjectId(value)
 
-    @classmethod
-    def __get_pydantic_json_schema__(cls, core_schema, handler):
-        # Provide JSON schema info for OpenAPI etc
-        return {
-            "type": "string",
-            "pattern": "^[a-fA-F0-9]{24}$"
-        }
+        return core_schema.no_info_after_validator_function(
+            validate,
+            core_schema.str_schema(),
+            serialization=core_schema.to_string_ser_schema(),
+        )
 
     
 
@@ -49,8 +45,13 @@ class MongoBaseModel(BaseModel):
     model_config = {
         "populate_by_name": True,
         "arbitrary_types_allowed": True,
-        "json_encoders": {ObjectId: str}
     }
+
+    @classmethod
+    def model_serializer(cls, obj):
+        if isinstance(obj, ObjectId):
+            return str(obj)
+        return obj
 
     def to_dict(self, use:str="return") -> dict:
         if use == "return":
