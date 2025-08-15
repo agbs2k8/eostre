@@ -130,8 +130,15 @@ class Location(MongoBaseModel):
 
     @staticmethod
     def deserialize(doc: dict) -> Optional["Location"]:
+        """
+        Deserialize a MongoDB document into a Location instance.
+        Ensures _id is a string for Pydantic validation.
+        """
         if doc is None:
             return None
+        doc = dict(doc)  # Make a shallow copy to avoid mutating the original
+        if "_id" in doc and isinstance(doc["_id"], ObjectId):
+            doc["_id"] = str(doc["_id"])
         return Location(**doc)
     
     @staticmethod
