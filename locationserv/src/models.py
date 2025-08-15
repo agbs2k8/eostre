@@ -145,3 +145,7 @@ class Location(MongoBaseModel):
             if key in mutable_fields and getattr(self, key) != value:
                 setattr(self, key, value)
         return await self.update(db_client)
+
+
+class LocationListResponse(BaseModel):
+    data: List[Location]

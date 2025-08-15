@@ -2,7 +2,7 @@ import fastapi
 import datetime
 from typing import Optional, List
 from bson import ObjectId
-from src.models import Location
+from src.models import Location, LocationListResponse
 from src.db import get_db
 from src.token_manager import token_manager
 
@@ -17,10 +17,10 @@ async def readiness():
     return {"message": "ok"}
 
 
-@router.get("/locations")
+@router.get("/locations",  response_model=LocationListResponse)
 async def list_locations_open(
     db = fastapi.Depends(get_db),
-    ids: Optional[List[str]] = fastapi.Query(default=None, alias="id")#,
+    ids: Optional[List[str]] = fastapi.Query(default=None, alias="id")
     #user: dict = fastapi.Depends(token_manager.require_permissions("account.read"))
 ):
     account_id = "1"#str(user["account_id"])
@@ -32,11 +32,12 @@ async def list_locations_open(
         filter_query = filter_query | {"deleted": False, "active": True}  # Everything not deleted
     cursor = db["locations"].find(filter_query)
     docs = await cursor.to_list(length=None)
-    locations = [Location.deserialize(doc).to_dict() for doc in docs]
-    return {"data": locations}
+    locations = [Location.deserialize(doc) for doc in docs]
+    return LocationListResponse(data=locations)
 
 
-@router.get("/location")
+
+@router.get("/location", response_model=LocationListResponse)
 async def list_locations(
     db = fastapi.Depends(get_db),
     ids: Optional[List[str]] = fastapi.Query(default=None, alias="id"),
@@ -51,8 +52,8 @@ async def list_locations(
         filter_query = filter_query | {"deleted": False, "active": True}  # Everything not deleted
     cursor = db["locations"].find(filter_query)
     docs = await cursor.to_list(length=None)
-    locations = [Location.deserialize(doc).to_dict() for doc in docs]
-    return {"data": locations}
+    locations = [Location.deserialize(doc) for doc in docs]
+    return LocationListResponse(data=locations)
 
 
 @router.post("/location")
