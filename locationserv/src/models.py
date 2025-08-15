@@ -7,7 +7,7 @@ from pydantic import (BaseModel,
                       model_validator, 
                       GetCoreSchemaHandler)
 from pydantic_core import core_schema
-from typing import Optional, List, Dict, Literal, Any
+from typing import Optional, List, Literal, Annotated
 from src.helpers import drop_null_keys
 
 
@@ -72,7 +72,7 @@ class MongoBaseModel(BaseModel):
         if result.acknowledged:
             return (True, self)
         else:
-            raise (False, self)
+            return (False, self)
     
     async def update(self, db_client):
         # Happy Path: "UpdateResult({'n': 1, 'electionId': ObjectId('7f...fe'), 'opTime': {'ts': Timestamp(17...25, 76), 't': 510},
@@ -87,7 +87,7 @@ class MongoBaseModel(BaseModel):
         if result.acknowledged:
             return (True, self)
         else:
-            raise (False, self)
+            return (False, self)
 
 
 class AddressDistrict(BaseModel):
@@ -109,7 +109,10 @@ class Address(BaseModel):
 
 class GeoPoint(BaseModel):
     type: Literal['Point']
-    coordinates: conlist(float, min_length=2, max_length=3)  # Lon, Lat,  elev.
+    coordinates: Annotated[
+        List[float],
+        Field(min_length=2, max_length=3, description="Lon, Lat, (optional elev.)")
+    ]
 
     @model_validator(mode="before")
     @classmethod
