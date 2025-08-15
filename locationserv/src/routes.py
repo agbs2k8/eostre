@@ -42,9 +42,8 @@ async def list_locations_open(
         filter_query = filter_query | {"deleted": False, "active": True}  # Everything not deleted
     cursor = db["locations"].find(filter_query)
     docs = await cursor.to_list(length=None)
-    locations = [Location.deserialize(doc) for doc in docs]
+    locations = [loc for doc in docs if (loc := Location.deserialize(doc)) is not None]
     return LocationListResponse(data=locations)
-
 
 
 @router.get("/location", 
@@ -73,7 +72,7 @@ async def list_locations(
         filter_query = filter_query | {"deleted": False, "active": True}  # Everything not deleted
     cursor = db["locations"].find(filter_query)
     docs = await cursor.to_list(length=None)
-    locations = [Location.deserialize(doc) for doc in docs]
+    locations = [loc for doc in docs if (loc := Location.deserialize(doc)) is not None]
     return LocationListResponse(data=locations)
 
 
