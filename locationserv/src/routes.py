@@ -27,7 +27,8 @@ async def list_locations_open(
                                              alias="id",
                                              title="Location IDs",
                                              description="A list of location IDs to filter by. If omitted, all active, non-deleted locations are returned.",
-                                             examples={"example_ids": {"value": ["64e4b2f2c9e77b2b8c8e4b2f"]}})
+                                             examples={"example_ids": {"value": ["64e4b2f2c9e77b2b8c8e4b2f"]}} # type: ignore
+                                             )
     #user: dict = fastapi.Depends(token_manager.require_permissions("account.read"))
 ):
     """
@@ -56,7 +57,8 @@ async def list_locations(
                                              alias="id",
                                              title="Location IDs",
                                              description="A list of location IDs to filter by. If omitted, all active, non-deleted locations are returned.",
-                                             examples={"example_ids": {"value": ["64e4b2f2c9e77b2b8c8e4b2f"]}}),
+                                             examples={"example_ids": {"value": ["64e4b2f2c9e77b2b8c8e4b2f"]}} # type: ignore
+                                             ),
     user: dict = fastapi.Depends(token_manager.require_permissions("account.read"))
 ):
     """
@@ -98,7 +100,7 @@ async def add_location(
         return {"message": "OK", "inserted_data":location.to_dict()}
     else:
         raise fastapi.HTTPException(
-            status_code=fastapi.status.HTTP_500,
+            status_code=fastapi.status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Unable to write to DB."
         )
 
@@ -112,8 +114,8 @@ async def update_location(
     # Check ID
     if not location.id:
         raise fastapi.HTTPException(
-            status_cod=fastapi.status.HTTP_400_BAD_REQUEST,
-            detai="the id value for the location is required for updates."
+            status_code=fastapi.status.HTTP_400_BAD_REQUEST,
+            detail="the id value for the location is required for updates."
         )
     # Get the Location object from the database
     db_location = await Location.get(location.id, db)
@@ -140,7 +142,7 @@ async def update_location(
         return {"message": "OK", "inserted_data":db_location.to_dict()}
     else:
         raise fastapi.HTTPException(
-            status_code=fastapi.status.HTTP_500,
+            status_code=fastapi.status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Unable to write to DB."
         )
     
@@ -153,8 +155,8 @@ async def delete_location(
     # Check ID
     if not location.id:
         raise fastapi.HTTPException(
-            status_cod=fastapi.status.HTTP_400_BAD_REQUEST,
-            detai="the id value for the location is required for updates."
+            status_code=fastapi.status.HTTP_400_BAD_REQUEST,
+            detail="the id value for the location is required for updates."
         )
     # Get the Location object from the database
     db_location = await Location.get(location.id, db)
@@ -184,6 +186,6 @@ async def delete_location(
         return {"message": "OK", "inserted_data":db_location.to_dict()}
     else:
         raise fastapi.HTTPException(
-            status_code=fastapi.status.HTTP_500,
+            status_code=fastapi.status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Unable to write to DB."
         )

@@ -107,6 +107,7 @@ class Address(BaseModel):
     streetName: Optional[str]
     streetNumber: Optional[str]
 
+
 class GeoPoint(BaseModel):
     type: Literal['Point']
     coordinates: Annotated[
