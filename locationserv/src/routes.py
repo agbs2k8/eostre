@@ -17,12 +17,22 @@ async def readiness():
     return {"message": "ok"}
 
 
-@router.get("/locations",  response_model=LocationListResponse)
+@router.get("/locations",  
+            response_model=LocationListResponse,
+            summary="List all locations",
+            description="Returns a list of all locations for account 1 without authentication.")
 async def list_locations_open(
     db = fastapi.Depends(get_db),
-    ids: Optional[List[str]] = fastapi.Query(default=None, alias="id")
+    ids: Optional[List[str]] = fastapi.Query(default=None, 
+                                             alias="id",
+                                             title="Location IDs",
+                                             description="A list of location IDs to filter by. If omitted, all active, non-deleted locations are returned.",
+                                             example=["cfdebdfC1843364b6FCe08BE", "cfdebdfC1843364b6FCe08BG"])
     #user: dict = fastapi.Depends(token_manager.require_permissions("account.read"))
 ):
+    """
+    List all locations for account 1 without using authentication for testing.
+    """
     account_id = "1"#str(user["account_id"])
     filter_query = {"account_id":account_id} 
     if ids:
@@ -37,12 +47,23 @@ async def list_locations_open(
 
 
 
-@router.get("/location", response_model=LocationListResponse)
+@router.get("/location", 
+            response_model=LocationListResponse,
+            summary="List all locations",
+            description="Returns a list of all locations the current user's account")
 async def list_locations(
     db = fastapi.Depends(get_db),
-    ids: Optional[List[str]] = fastapi.Query(default=None, alias="id"),
+    ids: Optional[List[str]] = fastapi.Query(default=None, 
+                                             alias="id",
+                                             title="Location IDs",
+                                             description="A list of location IDs to filter by. If omitted, all active, non-deleted locations are returned.",
+                                             example=["cfdebdfC1843364b6FCe08BE", "cfdebdfC1843364b6FCe08BG"]),
     user: dict = fastapi.Depends(token_manager.require_permissions("account.read"))
 ):
+    """
+    Return a list of all locations for the user's account.  Will filter out inactive/deleted by default, but will
+    return inactive/deleted locations if specified by ID. 
+    """
     account_id = str(user["account_id"])
     filter_query = {"account_id":account_id} 
     if ids:
