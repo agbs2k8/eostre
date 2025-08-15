@@ -17,6 +17,25 @@ async def readiness():
     return {"message": "ok"}
 
 
+@router.get("/locations")
+async def list_locations_open(
+    db = fastapi.Depends(get_db),
+    ids: Optional[List[str]] = fastapi.Query(default=None, alias="id")#,
+    #user: dict = fastapi.Depends(token_manager.require_permissions("account.read"))
+):
+    account_id = "1"#str(user["account_id"])
+    filter_query = {"account_id":account_id} 
+    if ids:
+        object_ids = [ObjectId(id_) for id_ in ids]
+        filter_query = filter_query | {"_id":{"$in": object_ids}}
+    else:
+        filter_query = filter_query | {"deleted": False, "active": True}  # Everything not deleted
+    cursor = db["locations"].find(filter_query)
+    docs = await cursor.to_list(length=None)
+    locations = [Location.deserialize(doc).to_dict() for doc in docs]
+    return {"data": locations}
+
+
 @router.get("/location")
 async def list_locations(
     db = fastapi.Depends(get_db),
