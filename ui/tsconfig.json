@@ -8,9 +8,10 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
     "paths": {
-      "ui-components": ["packages/ui-components/src"],
-      "utils": ["packages/utils/src"]
+      "ui-components/*": ["packages/ui-components/src/*"],
+      "utils/*": ["packages/utils/src/*"]
     }
   }
 }

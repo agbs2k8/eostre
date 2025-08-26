@@ -1,6 +1,6 @@
 source ../export_locals.sh
 
-python3 -m venv .venv
+/.venv/Scripts/activate
 
 source D:/Projects/eostre/locationserv/.venv/Scripts/activate
 

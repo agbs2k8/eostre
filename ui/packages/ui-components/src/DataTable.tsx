@@ -24,13 +24,13 @@ export const DataTable: React.FC<DataTableProps> = ({
   ...gridOptions
 }) => {
   return (
-    <div className={className || ""} style={{ height: 500, width:"100%"}}>
+    <div className={className || ""} style={{ height: 750, width:"100%"}}>
       <AgGridReact
         theme={myTheme}
         columnDefs={columnDefs}
         rowData={rowData}
         pagination
-        paginationPageSize={10}
+        paginationPageSize={15}
         {...gridOptions}
       />
     </div>

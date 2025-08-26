@@ -10,8 +10,9 @@ export default function Home() {
   const [rowData, setRowData] = useState<TableRow[]>([]);
 
   interface ApiLocation {
-    id: string;
-    name: string;
+    _id: string;
+    _name: string;
+    display_name: string;
     account_id: string;
     created_by: string;
     created_date: string;
@@ -45,12 +46,12 @@ export default function Home() {
 
 
   const columnDefs = [
-    { field: "name", sortable: true, filter: true, flex: 1 },
-    { field: "createdBy", sortable: true, filter: true, flex: 1 },
-    { field: "createdDate", sortable: true, filter: true, flex: 1 },
-    { field: "modifiedDate", sortable: true, filter: true, flex: 1 },
-    { field: "geoPoint", sortable: false, filter: true, flex: 1 },
-    { field: "address", sortable: true, filter: true, flex: 1 },
+    { field: "name", sortable: true, filter: true, flex: 1, resizable: true },
+    { field: "createdBy", sortable: true, filter: true, width:150, resizable: true },
+    { field: "createdDate", sortable: true, filter: true, flex: 1, resizable: true },
+    { field: "modifiedDate", sortable: true, filter: true, flex: 1, resizable: true },
+    { field: "geoPoint", sortable: false, filter: true, width:250, resizable: true },
+    { field: "address", sortable: true, filter: true, flex: 1 , resizable: true},
   ];
 
 
@@ -58,7 +59,7 @@ export default function Home() {
     apiClient<{ data: ApiLocation[] }>("/api/locationserv/locations")
       .then(res => {
         const tableRows: TableRow[] = res.data.map(item => ({
-          name: item.name,
+          name: item.display_name,
           createdBy: item.created_by,
           createdDate: item.created_date,
           modifiedDate: item.modified_date,

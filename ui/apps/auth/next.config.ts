@@ -1,14 +1,13 @@
-import type { NextConfig } from "next";
 import TsconfigPathsPlugin from "tsconfig-paths-webpack-plugin";
+import type { NextConfig } from "next";
 import type { Configuration } from "webpack";
 
-
 const nextConfig: NextConfig = {
-  async rewrites() {
+   async rewrites() {
     return [
       {
         source: "/api/auth/:path*",
-        destination: "http://localhost:5000/:path*",
+        destination: "http://localhost:5000/auth/:path*", 
       },
       {
         source: "/api/locationserv/:path*",
@@ -16,7 +15,7 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-   webpack: (config: Configuration) => {
+  webpack: (config: Configuration) => {
     if (!config.resolve?.plugins) config.resolve!.plugins = [];
     config.resolve!.plugins!.push(new TsconfigPathsPlugin());
     return config;
