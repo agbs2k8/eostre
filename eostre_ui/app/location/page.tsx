@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { apiClient } from "utils";
-import { DataTable } from "ui-components";
+import { apiClient } from "@utils/apiClient";
+import { DataTable } from "@ui-components/DataTable";
 import { themeQuartz } from "ag-grid-community"
 
 
