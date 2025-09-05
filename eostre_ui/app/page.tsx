@@ -32,13 +32,7 @@ export default function Home() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
+            <div className="bg-brand-500 text-white p-4">Tailwind is working!</div>
             Deploy now
           </a>
           <a
