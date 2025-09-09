@@ -11,7 +11,6 @@ interface DrawerProps {
     title?: string;
     side?: "left" | "right" | "bottom";
     variant?: "nav" | "detail" | "form";
-    offsetTop?: number; // px
     className?: string;
     children: React.ReactNode;
 }
@@ -22,21 +21,20 @@ export function Drawer({
     title,
     side = "right",
     variant = "detail",
-    offsetTop = 64, // default to 64px to match header
     className,
     children,
 }: DrawerProps) {
 
     const sideClasses: Record<string, string> = {
-        right: "top-[50px] right-0 h-[calc(100%-50px)] w-96",
-        left: "top-[50px] left-0 h-full w-48",
+        right: "top-[64px] right-0 h-[calc(100%-64px)] w-96",
+        left: "top-[64px] left-0 h-[calc(100%-64px)] w-48",
         bottom: "bottom-0 left-0 w-full h-1/2",
     };
 
     const variantClasses: Record<NonNullable<DrawerProps["variant"]>, string> = {
-        nav: "bg-brand-500 text-neutral-100 hover:text-neutral-200",
-        detail: "bg-neutral-600 text-neutral-100 hover:text-neutral-200",
-        form: "bg-neutral-600 text-neutral-100 hover:text-neutral-200"
+        nav: "bg-brand-primary text-brand-light",
+        detail: "bg-brand-light text-brand-dark dark:bg-brand-dark dark:text-brand-light",
+        form: "bg-brand-light text-brand-dark dark:bg-brand-dark dark:text-brand-light",
     };
 
     return (
@@ -45,7 +43,7 @@ export function Drawer({
                 <>
                     {/* Overlay (starts below the navbar) */}
                     <motion.div
-                        className="fixed inset-0 top-12 bg-black/50 z-40"
+                        className="fixed inset-0 top-12 bg-black/40 dark:bg-black/60 z-40"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
@@ -74,7 +72,11 @@ export function Drawer({
                         {/* Header */}
                         <div className="flex items-center justify-between border-b px-4 py-2">
                             {title && <h2 className="text-lg font-semibold">{title}</h2>}
-                            <button onClick={onClose} aria-label="Close drawer">
+                            <button 
+                              onClick={onClose} 
+                              aria-label="Close drawer"
+                              className="p-1 rounded hover:bg-black/10 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-brand-primary"
+                            >
                                 <X className="h-5 w-5" />
                             </button>
                         </div>

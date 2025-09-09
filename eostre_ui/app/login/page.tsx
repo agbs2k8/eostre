@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useAuth, AuthProvider } from "@utils/authProvider"
 import { useRouter } from "next/navigation";
+import { Button } from "@ui-components/Button";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -25,30 +26,30 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center">
       <form
         onSubmit={handleSubmit}
-        className="w-80 rounded bg-white p-6 shadow space-y-4"
+        className="w-80 rounded bg-brand-light text-brand-dark dark:bg-brand-dark dark:text-brand-light p-6 shadow space-y-4"
       >
-        <h1 className="text-xl font-bold text-gray-700">Login</h1>
+        <h1 className="text-xl font-bold bg-brand-light dark:bg-brand-dark dark:text-brand-light">Login</h1>
         {error && <p className="text-red-500">{error}</p>}
         <input
-          className="w-full rounded border p-2 text-gray-700 placeholder-gray-400"
+          className="w-full rounded border p-2 bg-brand-light dark:bg-brand-dark dark:text-brand-light"
           type="text"
           placeholder="Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
         />
         <input
-          className="w-full rounded border p-2 text-gray-700 placeholder-gray-400"
+          className="w-full rounded border p-2 bg-brand-light dark:bg-brand-dark dark:text-brand-light"
           type="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-        <button
-          type="submit"
-          className="w-full rounded bg-blue-500 p-2 text-white"
-        >
-          Login
-        </button>
+        <Button
+              onClick={() => SubmitEvent}
+              aria-label="Open add location drawer"
+            >
+              Login
+        </Button>
       </form>
     </div>
   );

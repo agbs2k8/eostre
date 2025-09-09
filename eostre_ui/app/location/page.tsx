@@ -3,11 +3,12 @@
 import { useEffect, useState } from "react";
 import { apiClient } from "@utils/apiClient";
 import { DataTable } from "@ui-components/DataTable";
-import { themeQuartz } from "ag-grid-community"
-
+import { Button } from "@ui-components/Button";
+import { Drawer } from "@ui-components/Drawer";
 
 export default function Home() {
   const [rowData, setRowData] = useState<TableRow[]>([]);
+  const [isAddOpen, setAddOpen] = useState(false);
 
   interface ApiLocation {
     _id: string;
@@ -24,7 +25,7 @@ export default function Home() {
       coordinates: [number, number, number?];
     };
     address?: {
-      countryRegion?: { name: string };
+      countryRegion?: { name };
       addressLine?: string;
       adminDistricts?: { name: string; shortName: string }[];
       formattedAddress?: string;
@@ -44,16 +45,14 @@ export default function Home() {
     address: string;
   }
 
-
   const columnDefs = [
     { field: "name", sortable: true, filter: true, flex: 1, resizable: true },
-    { field: "createdBy", sortable: true, filter: true, width:150, resizable: true },
+    { field: "createdBy", sortable: true, filter: true, width: 150, resizable: true },
     { field: "createdDate", sortable: true, filter: true, flex: 1, resizable: true },
     { field: "modifiedDate", sortable: true, filter: true, flex: 1, resizable: true },
-    { field: "geoPoint", sortable: false, filter: true, width:250, resizable: true },
-    { field: "address", sortable: true, filter: true, flex: 1 , resizable: true},
+    { field: "geoPoint", sortable: false, filter: true, width: 250, resizable: true },
+    { field: "address", sortable: true, filter: true, flex: 1, resizable: true },
   ];
-
 
   useEffect(() => {
     apiClient<{ data: ApiLocation[] }>("/api/locationserv/locations")
@@ -64,24 +63,59 @@ export default function Home() {
           createdDate: item.created_date,
           modifiedDate: item.modified_date,
           geoPoint: item.geo_point?.coordinates?.join(", ") || "",
-          address: item.address?.formattedAddress || ""
+          address: item.address?.formattedAddress || "",
         }));
-
         setRowData(tableRows);
       })
       .catch(err => console.error("Fetch failed", err));
   }, []);
 
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start w-full">
-        <h1 className="text-2xl mb-4">Locations</h1>
-        <DataTable columnDefs={columnDefs} rowData={rowData} />
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
+    <>
+      <div className="font-sans min-h-screen p-8 sm:p-20 bg-brand-light text-brand-dark dark:bg-brand-dark dark:text-brand-light">
+        <main className="flex flex-col gap-8 w-full">
+          {/* Header with title and +Add button */}
+          <div className="w-full flex items-center justify-between mb-6">
+            <h1 className="text-2xl font-bold text-brand-primary dark:text-accent-cyan">
+              Locations
+            </h1>
+            <Button
+              onClick={() => setAddOpen(true)}
+              aria-label="Open add location drawer"
+            >
+              + Add
+            </Button>
+          </div>
 
-        </div>
-      </main>
+          {/* DataTable */}
+          <DataTable columnDefs={columnDefs} rowData={rowData} />
+        </main>
+      </div>
 
-    </div>
+      {/* Drawer for adding locations */}
+      <Drawer
+        isOpen={isAddOpen}
+        onClose={() => setAddOpen(false)}
+        title="Add Location"
+        side="right"
+        variant="form"
+      >
+        {/* Example form inside drawer */}
+        <form className="flex flex-col gap-4">
+          <label className="flex flex-col">
+            Name
+            <input className="mt-1 p-2 border rounded bg-brand-light dark:bg-brand-dark dark:text-brand-light" />
+          </label>
+          <label className="flex flex-col">
+            Address
+            <input className="mt-1 p-2 border rounded bg-brand-light dark:bg-brand-dark dark:text-brand-light" />
+          </label>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button onClick={() => setAddOpen(false)}>Cancel</Button>
+            <Button type="submit">Save</Button>
+          </div>
+        </form>
+      </Drawer>
+    </>
   );
 }

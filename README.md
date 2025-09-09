@@ -13,21 +13,16 @@ Multi-tenant web-app
 
 # TODO - LocationServ
 1. Add tests
-2. Load Capitols (US, CA, Global) to populate the database
-3. Forward location (if deleted, optiona re-direct to other objectId)
-4. FIND endpoint
+2. Forward location (if deleted, optiona re-direct to other objectId)
+3. FIND endpoint
 
-# TODO - TagService
-1. Create / Read / Update / Delete
-2. 
 
 # UI Plan
-- Login handler
+- Layout & Navigation
+- Design 
 - Locations
-  - List locations AgGrid Table + Menu 
   - Create Location Modal
   - Edit Loction Modal
   - Delete Location menu-option w/ warning pop-up
   - Deleted locations tab/table (AgGrid)
   - Restore deleted location
-  - Forward deleted location
