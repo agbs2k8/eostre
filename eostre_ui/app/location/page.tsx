@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAuth } from "@utils/authProvider";
 import { apiClient } from "@utils/apiClient";
 import { DataTable } from "@ui-components/DataTable";
 import { Button } from "@ui-components/Button";
 import { Drawer } from "@ui-components/Drawer";
 
 export default function Home() {
+  const { accessToken } = useAuth();
   const [rowData, setRowData] = useState<TableRow[]>([]);
   const [isAddOpen, setAddOpen] = useState(false);
 
@@ -55,7 +57,7 @@ export default function Home() {
   ];
 
   useEffect(() => {
-    apiClient<{ data: ApiLocation[] }>("/api/locationserv/locations")
+    apiClient<{ data: ApiLocation[] }>("/api/locationserv/locations", accessToken)
       .then(res => {
         const tableRows: TableRow[] = res.data.map(item => ({
           name: item.display_name,

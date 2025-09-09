@@ -55,12 +55,10 @@ async def login():
 
     response = jsonify({
         "access_token": access_token,
-        "refresh_token": refresh_token,
         "token_type": "Bearer"
     })
 
-    response.set_cookie("access_token", access_token, httponly=True, samesite="Strict", secure=True)
-    response.set_cookie("refresh_token", refresh_token, httponly=True, samesite="Strict", secure=True)
+    response.set_cookie("refresh_token", refresh_token, httponly=True, samesite="Strict", secure=True, path="/api/auth/refresh")
 
     return response
 
@@ -68,8 +66,8 @@ async def login():
 @validate_request(RefreshTokenInput)
 @auth_bp.route("/refresh", methods=["POST"])
 async def refresh_token():
-    token = (await request.get_json()).get("refresh_token")
-
+    #token = (await request.get_json()).get("refresh_token")
+    token = request.cookies.get("refresh_token")
     if not token:
         return jsonify({"error": "Missing token"}), 401
 
@@ -84,10 +82,12 @@ async def refresh_token():
     user = await User.get(payload["sub"], session)
     
     user_data = await generate_user_payload(user, payload['account_id'], session)
+    # New tokens (rotate refresh token)
     new_access_token = auth_manager.create_access_token(user_data)
-
+    new_refresh_tooken = auth_manager.create_refresh_token(user_data)
+    # Build response & set the cookie with the new refresh token
     response = jsonify({"access_token": new_access_token})
-    response.set_cookie("access_token", new_access_token, httponly=True, samesite="Strict", secure=True)
+    response.set_cookie("refresh_token", new_refresh_tooken, httponly=True, samesite="Strict", secure=True, path="/api/auth/refresh")
 
     return response
 
@@ -109,3 +109,12 @@ async def switch_account():
     new_token = auth_manager.create_access_token(user_data)
 
     return jsonify({"access_token": new_token})
+
+
+@auth_bp.route("/logout", methods=["POST"])
+async def logout():
+    response = jsonify({"message": "Logout successful."})
+    # Wipe out the refresh-token from the cookie
+    response.set_cookie("refresh_token", "", httponly=True, secure=True, samesite="Strict", max_age=0)
+
+    return response

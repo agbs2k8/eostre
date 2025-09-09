@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth, AuthProvider } from "@utils/authProvider"
+import { useAuth } from "@utils/authProvider";
 import { useRouter } from "next/navigation";
 import { Button } from "@ui-components/Button";
 
@@ -18,6 +18,7 @@ export default function LoginPage() {
       await login(username, password);
       router.push("/location");
     } catch (err) {
+      console.error("Login error:", err);
       setError("Invalid username or password");
     }
   };
@@ -28,7 +29,7 @@ export default function LoginPage() {
         onSubmit={handleSubmit}
         className="w-80 rounded bg-brand-light text-brand-dark dark:bg-brand-dark dark:text-brand-light p-6 shadow space-y-4"
       >
-        <h1 className="text-xl font-bold bg-brand-light dark:bg-brand-dark dark:text-brand-light">Login</h1>
+        <h1 className="text-xl font-bold">Login</h1>
         {error && <p className="text-red-500">{error}</p>}
         <input
           className="w-full rounded border p-2 bg-brand-light dark:bg-brand-dark dark:text-brand-light"
@@ -44,11 +45,8 @@ export default function LoginPage() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-        <Button
-              onClick={() => SubmitEvent}
-              aria-label="Open add location drawer"
-            >
-              Login
+        <Button type="submit" aria-label="Login">
+          Login
         </Button>
       </form>
     </div>

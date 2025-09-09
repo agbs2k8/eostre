@@ -5,17 +5,17 @@ export async function loginRequest(username: string, password: string) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, password }),
+    credentials: "include",
   });
 
   if (!res.ok) throw new Error(`Login failed: ${res.status}`);
   return res.json();
 }
 
-export async function refreshRequest(refreshToken: string) {
+export async function refreshRequest() {
   const res = await fetch(`/api/auth/refresh`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ refresh_token: refreshToken }),
+    credentials: "include",
   });
 
   if (!res.ok) throw new Error(`Refresh failed: ${res.status}`);
