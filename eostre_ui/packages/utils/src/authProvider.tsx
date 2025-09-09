@@ -1,64 +1,116 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { loginRequest, refreshRequest } from "./authClient";
-import { useRouter } from "next/navigation";
+import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
+import { loginRequest, refreshRequest } from "./authClient";
+
+interface TokenPayload {
+  sub: string;
+  username: string;
+  type?: string;
+  account_id?: string;
+  permissions?: Record<string, unknown>;
+  iat?: number;
+  exp?: number;
+}
 
 interface AuthContextType {
   accessToken: string | null;
-  user?: { [key: string]: any };
+  user: TokenPayload | null;
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
+  refresh: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const router = useRouter();
-  const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [user, setUser] = useState<AuthContextType["user"]>();
+const ACCESS_TOKEN_KEY = "ACCESS_TOKEN";
 
-  // Auto-refresh on mount
+function safeDecode(token: string): TokenPayload | null {
+  try {
+    return jwtDecode<TokenPayload>(token);
+  } catch {
+    return null;
+  }
+}
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [user, setUser] = useState<TokenPayload | null>(null);
+
+  // Load from localStorage on mount (client side)
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await refreshRequest();
-        setAccessToken(res.access_token);
-        setUser(jwtDecode(res.access_token));
-      } catch {
-        setAccessToken(null);
-        setUser(undefined);
+    const saved = typeof window !== "undefined" ? localStorage.getItem(ACCESS_TOKEN_KEY) : null;
+    if (saved) {
+      const payload = safeDecode(saved);
+      if (payload?.username) {
+        setAccessToken(saved);
+        setUser(payload);
+      } else {
+        localStorage.removeItem(ACCESS_TOKEN_KEY);
       }
-    })();
+    }
   }, []);
 
-  const login = async (username: string, password: string) => {
+  const login = useCallback(async (username: string, password: string) => {
     const res = await loginRequest(username, password);
-    setAccessToken(res.access_token);
-    setUser(jwtDecode(res.access_token));
-  };
+    // Expecting { access_token: "...", refresh_expires_in?, ... }
+    const token = res.access_token;
+    if (!token) throw new Error("Missing access_token in response");
+    const payload = safeDecode(token);
+    if (!payload?.username) throw new Error("Invalid token payload");
+    setAccessToken(token);
+    setUser(payload);
+    localStorage.setItem(ACCESS_TOKEN_KEY, token);
+  }, []);
 
-  const logout = () => {
+  const refresh = useCallback(async () => {
+    try {
+      const res = await refreshRequest();
+      const token = res.access_token;
+      if (!token) return;
+      const payload = safeDecode(token);
+      if (!payload?.username) return;
+      setAccessToken(token);
+      setUser(payload);
+      localStorage.setItem(ACCESS_TOKEN_KEY, token);
+    } catch {
+      // Silent fail; could auto-logout
+    }
+  }, []);
+
+  const logout = useCallback(() => {
     setAccessToken(null);
-    setUser(undefined);
-    fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/auth/logout`, {
-      method: "POST",
-      credentials: "include",
-    }).finally(() => {
-      router.push("/login");
-    });
-  };
+    setUser(null);
+    localStorage.removeItem(ACCESS_TOKEN_KEY);
+    // Optionally call backend invalidate endpoint
+  }, []);
+
+  // Optional: auto refresh shortly before expiry
+  useEffect(() => {
+    if (!accessToken || !user?.exp) return;
+    const now = Math.floor(Date.now() / 1000);
+    const secondsLeft = user.exp - now;
+    if (secondsLeft <= 0) {
+      logout();
+      return;
+    }
+    // refresh 30s before expiry
+    const timeout = setTimeout(() => {
+      refresh();
+    }, Math.max((secondsLeft - 30) * 1000, 5_000));
+    return () => clearTimeout(timeout);
+  }, [accessToken, user, refresh, logout]);
 
   return (
-    <AuthContext.Provider value={{ accessToken, user, login, logout }}>
+    <AuthContext.Provider value={{ accessToken, user, login, logout, refresh }}>
       {children}
     </AuthContext.Provider>
   );
-}
+};
 
-export function useAuth() {
+export function useAuth(): AuthContextType {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
 }

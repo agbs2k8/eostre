@@ -12,9 +12,8 @@ export function Navbar() {
   const { accessToken, user, logout } = useAuth();
 
   const getInitials = (name: string | undefined) => {
-    if (!name) return "U";
-    const parts = name.split(" ");
-    return parts.map(p => p[0].toUpperCase()).join("").slice(0, 2);
+    if (!name) return "~";
+    return name[0].toUpperCase(); 
   };
 
   // Apply/remove 'dark' class on <html> element
@@ -70,10 +69,9 @@ export function Navbar() {
 
                 {/* User initials circle */}
                 <div
-                  className="w-8 h-8 rounded-full bg-white text-brand-primary flex items-center justify-center font-bold text-sm"
-                  title={user?.name} // shows full name on hover
-                >
-                  {getInitials(user?.name)}
+                  className="w-8 h-8 rounded-full bg-white text-brand-primary flex items-center justify-center font-bold text-sm">
+                  
+                  {getInitials(user?.username)}
                 </div>
               </div>
             )}
