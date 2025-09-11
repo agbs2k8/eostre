@@ -20,6 +20,7 @@ interface AuthContextType {
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
   refresh: () => Promise<void>;
+  isAuthenticated: boolean | false;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -102,8 +103,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => clearTimeout(timeout);
   }, [accessToken, user, refresh, logout]);
 
+  const isAuthenticated = Boolean(accessToken);
+
   return (
-    <AuthContext.Provider value={{ accessToken, user, login, logout, refresh }}>
+    <AuthContext.Provider value={{ accessToken, user, login, logout, refresh, isAuthenticated }}>
       {children}
     </AuthContext.Provider>
   );
@@ -111,6 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 export function useAuth(): AuthContextType {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
-  return ctx;
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider")
+  const isAuthenticated = Boolean(ctx.accessToken);
+  return { ...ctx, isAuthenticated };
 }

@@ -21,3 +21,14 @@ export async function refreshRequest() {
   if (!res.ok) throw new Error(`Refresh failed: ${res.status}`);
   return res.json();
 }
+
+export async function logoutRequest() {
+  const res = await fetch(`/api/auth/logout`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+  });
+
+  if (!res.ok) throw new Error(`Logout failed: ${res.status}`);
+  return res.json();
+}

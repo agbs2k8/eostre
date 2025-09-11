@@ -9,6 +9,27 @@ import logging
 logger = logging.getLogger(__name__)
 user_bp = Blueprint("user_v1", __name__, url_prefix="/user")
 
+# TODO - clean this up
+async def full_user_record(user: User, session):
+    user_obj = {
+        'id': user.id,
+        'name': user.name,
+        'type': user.type,
+        'email': str(user.email),
+        'alternate_emails': [str(email) for email in user.alternate_emails],
+        'personal_name': user.personal_name,
+        'family_names': user.family_names,
+        'display_name': user.display_name,
+        'active': user.active,
+        'created_date': user.created_date.isoformat(),
+        'modified_date': user.modified_date.isoformat(),
+        'deleted': user.deleted,
+        'grants': await asyncio.gather(*(grant.to_dict() for grant in user.grants)),
+        'permissions': await user.get_permissions(session)
+    }
+
+    return user_obj
+
 
 @user_bp.route('', methods=['GET'])
 @auth_manager.jwt_required()
@@ -39,28 +60,7 @@ async def get_users():
         )
     )
     users = result.scalars().all()
-
-    # Wrap in a function for now...
-    async def full_user_record(user: User):
-        user_obj = {
-            'id': user.id,
-            'name': user.name,
-            'type': user.type,
-            'email': str(user.email),
-            'alternate_emails': [str(email) for email in user.alternate_emails],
-            'personal_name': user.personal_name,
-            'family_names': user.family_names,
-            'display_name': user.display_name,
-            'active': user.active,
-            'created_date': user.created_date.isoformat(),
-            'modified_date': user.modified_date.isoformat(),
-            'deleted': user.deleted,
-            'grants': await asyncio.gather(*(grant.to_dict() for grant in user.grants)),
-            'permissions': await user.get_permissions(session)
-        }
-
-        return user_obj
-    user_dicts = [await full_user_record(user) for user in users]
+    user_dicts = [await full_user_record(user, session) for user in users]
     return jsonify(user_dicts), 200
 
 
@@ -88,8 +88,27 @@ async def remove_user():
 @user_bp.route("/me", methods=['GET'])
 @auth_manager.jwt_required()
 async def get_me():
+    session = g.db_session
     logger.info(f"User {g.user['sub']} their personal record")
-    return jsonify({"user": g.user})
+    result = await session.execute(
+        sqlalchemy.select(User)
+        .where(
+            User.id == g.user['sub']
+            )
+        .options(
+            sqlalchemy.orm.selectinload(User.email),
+            sqlalchemy.orm.selectinload(User.alternate_emails),
+            sqlalchemy.orm.selectinload(User.grants)
+                .selectinload(Grant.role)
+                .selectinload(Role.permissions),
+            sqlalchemy.orm.selectinload(User.grants)
+                .selectinload(Grant.account),
+        )
+    )
+    users = result.scalars().all()
+    # TODO - fix the indexing here - that's garbage!!
+    user_dict = [await full_user_record(user, session) for user in users[:1]][0]
+    return jsonify(user_dict), 200
 
 
 @user_bp.route("/me", methods=['PUT'])

@@ -11,6 +11,10 @@ const nextConfig: NextConfig = {
         source: "/api/locationserv/:path*",
         destination: "http://localhost:8001/:path*",
       },
+      {
+        source: "/api/v1/:path*",
+        destination: "http://localhost:5000/api/v1/:path*", 
+      },
     ];
   },
 };

@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { Home, User, Menu, Sun, Moon } from "lucide-react";
+import { Home, User, Menu, ToggleLeft, ToggleRight } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Drawer } from "@ui-components/Drawer";
 import { useAuth } from "@utils/authProvider";
+import { Tooltip } from "@ui-components/Tooltip"
 
 export function Navbar() {
   const [isDark, setIsDark] = useState(false);
@@ -13,7 +14,7 @@ export function Navbar() {
 
   const getInitials = (name: string | undefined) => {
     if (!name) return "~";
-    return name[0].toUpperCase(); 
+    return name[0].toUpperCase();
   };
 
   // Apply/remove 'dark' class on <html> element
@@ -70,7 +71,7 @@ export function Navbar() {
                 {/* User initials circle */}
                 <div
                   className="w-8 h-8 rounded-full bg-white text-brand-primary flex items-center justify-center font-bold text-sm">
-                  
+
                   {getInitials(user?.username)}
                 </div>
               </div>
@@ -81,9 +82,13 @@ export function Navbar() {
               aria-label="Toggle dark mode"
             >
               {isDark ? (
-                <Sun className="h-5 w-5 text-yellow-300" />
+                <Tooltip text="Enable light mode" position="left">
+                  <ToggleLeft className="h-5 w-5 text-gray-700" />
+                </Tooltip>
               ) : (
-                <Moon className="h-5 w-5 text-gray-700" />
+                <Tooltip text="Enable dark mode" position="left">
+                  <ToggleRight className="h-5 w-5 text-gray-300" />
+                </Tooltip>
               )}
             </button>
           </div>

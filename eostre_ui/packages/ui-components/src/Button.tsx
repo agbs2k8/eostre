@@ -20,9 +20,3 @@ export function Button({ children, className, ...props }: ButtonProps) {
     </button>
   );
 }
-
-/*export const Button = ({ children }: { children: React.ReactNode }) => (
-  <button className="px-8 py-2 bg-accent-500 text-brand-600 rounded">
-    {children}
-  </button>
-);*/
