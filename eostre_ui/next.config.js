@@ -1,24 +1,26 @@
 /** @type {import('next').NextConfig} */
-const ADMIN_INTERNAL = process.env.ADMIN_API_INTERNAL || "http://localhost:5000";
-const LOCATION_INTERNAL = process.env.LOCATION_API_INTERNAL || "http://localhost:8001";
+const pick = (...vals) => vals.find(v => v && v.trim().length) || "";
+
+const ADMIN_INTERNAL = pick(
+  process.env.ADMIN_API_INTERNAL,          // .env.local (local dev) or docker env
+  process.env.NEXT_PUBLIC_ADMIN_API,       // public fallback
+  "http://localhost:5000"                  // final fallback
+);
+
+const LOCATION_INTERNAL = pick(
+  process.env.LOCATION_API_INTERNAL,
+  process.env.NEXT_PUBLIC_LOCATION_API,
+  "http://localhost:8001"
+);
 
 module.exports = {
   async rewrites() {
     const admin = ADMIN_INTERNAL.replace(/\/$/, "");
     const loc = LOCATION_INTERNAL.replace(/\/$/, "");
     return [
-      {
-        source: "/api/auth/:path*",
-        destination: `${admin}/auth/:path*`,
-      },
-      {
-        source: "/api/locationserv/:path*",
-        destination: `${loc}/:path*`,
-      },
-      {
-        source: "/api/v1/:path*",
-        destination: `${admin}/api/v1/:path*`,
-      },
+      { source: "/api/auth/:path*",       destination: `${admin}/auth/:path*` },
+      { source: "/api/locationserv/:path*", destination: `${loc}/:path*` },
+      { source: "/api/v1/:path*",         destination: `${admin}/api/v1/:path*` },
     ];
   },
 };

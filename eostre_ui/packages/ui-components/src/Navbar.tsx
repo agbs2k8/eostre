@@ -109,8 +109,8 @@ export function Navbar() {
           <Link className="text-white" href="/location" onClick={() => setNavOpen(false)}>
             Locations
           </Link>
-          <Link className="text-white" href="/location" onClick={() => setNavOpen(false)}>
-            UserProfile
+          <Link className="text-white" href="/user-profile" onClick={() => setNavOpen(false)}>
+            User Profile
           </Link>
           {!accessToken ? (
             <Link className="text-white" href="/login" onClick={() => setNavOpen(false)}>
