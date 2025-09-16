@@ -14,10 +14,28 @@ SECURITY_PASSWORD_SALT = os.getenv("APP_PASSWORD_SALT", secrets.SystemRandom().g
 ENCRYPT_ALGORITHM = "RS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 15
 REFRESH_TOKEN_EXPIRE_MINUTES = 10080
+CORS_ORIGIN = (os.getenv("CORS_ORIGIN", "http://localhost:3000"))
 
 # Public and Private Key Paths
-PRIVATE_KEY = pathlib.Path(os.getenv("PRIVATE_KEY_PATH", "private_key.pem")).read_text()
-PUBLIC_KEY = pathlib.Path(os.getenv("PUBLIC_KEY_PATH", "public_key.pem")).read_text()
+KEYS_DIR = pathlib.Path(os.getenv("KEYS_DIR", "keys"))
+
+PRIVATE_KEY_PATH = pathlib.Path(
+    os.getenv("PRIVATE_KEY_PATH", KEYS_DIR / "private_key.pem")
+)
+PUBLIC_KEY_PATH = pathlib.Path(
+    os.getenv("PUBLIC_KEY_PATH", KEYS_DIR / "public_key.pem")
+)
+
+def _read_required(path: pathlib.Path, name: str) -> str:
+    if not path.exists():
+        raise FileNotFoundError(
+            f"{name} not found at {path}. "
+            f"Set {name.upper()}_PATH or KEYS_DIR. Mounted keys dir contents: {list(KEYS_DIR.glob('*'))}"
+        )
+    return path.read_text(encoding="utf-8")
+
+PRIVATE_KEY = _read_required(PRIVATE_KEY_PATH, "private_key")
+PUBLIC_KEY = _read_required(PUBLIC_KEY_PATH, "public_key")
 
 LOG_CONFIG = {
     "version": 1,

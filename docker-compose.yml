@@ -7,6 +7,10 @@ services:
       dockerfile: Dockerfile
     container_name: adminserver
     env_file: ./adminserver/.env
+    environment:
+      KEYS_DIR: /app/keys
+      PRIVATE_KEY_PATH: /app/keys/private_key.pem
+      PUBLIC_KEY_PATH: /app/keys/public_key.pem
     volumes:
       - ./keys:/app/keys:ro
       - ./adminserver:/app   # dev only
@@ -25,6 +29,9 @@ services:
       dockerfile: Dockerfile
     container_name: locationserv
     env_file: ./locationserv/.env
+    environment:
+      KEYS_DIR: /app/keys
+      PUBLIC_KEY_PATH: /app/keys/public_key.pem
     volumes:
       - ./keys:/app/keys:ro
       - ./locationserv:/app   # dev only

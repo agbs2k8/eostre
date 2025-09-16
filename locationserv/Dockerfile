@@ -1,21 +1,28 @@
-# FastAPI location service
 FROM python:3.13-slim
 
 ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Install build essentials only if you have binary deps (uncomment if needed)
+# RUN apt-get update && apt-get install -y --no-install-recommends build-essential && rm -rf /var/lib/apt/lists/*
 
-# Copy only necessary source (adjust if you have other resource dirs)
+# Copy Pipenv files first for caching
+COPY Pipfile Pipfile.lock ./
+
+# Install pipenv and project deps into system site-packages
+RUN pip install --no-cache-dir pipenv && \
+    pipenv install --system --deploy --ignore-pipfile
+
+# Copy source code
 COPY src ./src
 
-# If you need a keys dir baked in (runtime mount overrides) uncomment:
-# COPY ../adminserver/keys ./keys
+# (Optional) copy any ancillary modules/config if needed
+# COPY config ./config
 
 EXPOSE 8000
 
-# Using app factory create_app in src/app.py
+# Dev auto-reload; remove --reload for production
 CMD ["uvicorn", "src.app:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000", "--reload"]

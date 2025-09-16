@@ -15,6 +15,7 @@ cryptography = ">=45.0.5"
 aiosqlite = ">=0.21.0"
 quart-schema = ">=0.22.0"
 pydantic = ">=1.10.22"
+quart_cors = ">=0.8.0"
 
 
 [dev-packages]

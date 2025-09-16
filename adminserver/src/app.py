@@ -1,6 +1,7 @@
 import logging.config
 from quart import Quart, g
 from quart_schema import QuartSchema
+from quart_cors import cors
 # Imports from within the project
 import config as cfg
 from src.api.v1.routes import api_v1_bp
@@ -13,6 +14,15 @@ from src.db import AsyncSessionLocal, setup_db
 def create_app():
     # Instantiate the application
     app = Quart(__name__)
+
+    # Quart CORS 
+    app = cors(
+        app,
+        allow_origin=cfg.CORS_ORIGIN,
+        allow_credentials=True,
+        allow_methods=["POST", "GET", "OPTIONS"],
+        allow_headers=["Content-Type", "Authorization"],
+    )
     
     # Logging
     logging.config.dictConfig(cfg.LOG_CONFIG)
