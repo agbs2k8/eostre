@@ -2,34 +2,63 @@ version: "3.9"
 
 services:
   adminserver:
-    image: agbs2k8/adminserver:latest
     build:
       context: ./adminserver
+      dockerfile: Dockerfile
     container_name: adminserver
-    ports:
-      - "5000:8080"
     env_file: ./adminserver/.env
     volumes:
-      - ./adminserver/keys:/app/keys
-    environment:
-      - PYTHONUNBUFFERED=1
-      - PYTHONDONTWRITEBYTECODE=1
-    restart: unless-stopped
-
-  api:
-    build:
-      context: ./api
-      dockerfile: Dockerfile
-    container_name: fastapi_service
+      - ./keys:/app/keys:ro
+      - ./adminserver:/app   # dev only
     ports:
-      - "8000:8000"
-    env_file:
-      - ./api/.env
+      - "5000:8080"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  locationserv:
+    build:
+      context: ./locationserv
+      dockerfile: Dockerfile
+    container_name: locationserv
+    env_file: ./locationserv/.env
     volumes:
-      - ./adminserver/keys:/app/keys  # Mount the same PEM key directory
+      - ./keys:/app/keys:ro
+      - ./locationserv:/app   # dev only
     depends_on:
       - mongo
+    ports:
+      - "8001:8000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/liveness"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  eostre_ui:
+    build:
+      context: ./eostre_ui
+      dockerfile: Dockerfile
+    container_name: eostre_ui
+    env_file: ./eostre_ui/.env
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_ADMIN_API: http://localhost:5000
+      NEXT_PUBLIC_LOCATION_API: http://localhost:8001
+      ADMIN_API_INTERNAL: http://adminserver:8080
+      LOCATION_API_INTERNAL: http://locationserv:8000
+    volumes:
+      - ./eostre_ui:/app
+      - /app/node_modules
+    depends_on:
       - adminserver
+      - locationserv
+    ports:
+      - "3000:3000"
     restart: unless-stopped
 
   mongo:
@@ -43,6 +72,11 @@ services:
     volumes:
       - mongo_data:/data/db
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--username=root", "--password=example", "--eval", "db.runCommand({ ping: 1 })"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
 
 volumes:
   mongo_data:
