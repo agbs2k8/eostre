@@ -53,13 +53,13 @@ export function Navbar() {
           <div className="flex items-center space-x-4">
             {!accessToken ? (
               <>
-                <Link href="/login" className="text-white flex items-center gap-1">
+                <Link href="/login" className="text-white flex items-center gap-4">
                   Login
                   <User className="h-6 w-6 text-white" />
                 </Link>
               </>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-4">
                 {/* Logout button */}
                 <button
                   onClick={logout}
@@ -69,11 +69,12 @@ export function Navbar() {
                 </button>
 
                 {/* User initials circle */}
-                <div
-                  className="w-8 h-8 rounded-full bg-white text-brand-primary flex items-center justify-center font-bold text-sm">
-
-                  {getInitials(user?.username)}
-                </div>
+                <Link href="/user-profile" className="no-underline hover:no-underline">
+                  <div
+                    className="w-8 h-8 rounded-full bg-white text-brand-primary flex items-center justify-center font-bold text-sm">
+                    {getInitials(user?.username)}
+                  </div>
+                </Link>
               </div>
             )}
             <button
@@ -83,7 +84,7 @@ export function Navbar() {
             >
               {isDark ? (
                 <Tooltip text="Enable light mode" position="left">
-                  <ToggleLeft className="h-5 w-5 text-gray-700" />
+                  <ToggleLeft className="h-5 w-5 text-gray-300" />
                 </Tooltip>
               ) : (
                 <Tooltip text="Enable dark mode" position="left">

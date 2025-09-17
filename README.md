@@ -27,9 +27,8 @@ Multi-tenant web-app
   - Deleted locations tab/table (AgGrid)
   - Restore deleted location
 
-
-  Checking the keys:
-   docker compose exec adminserver python -c "import config,hashlib; print(config.PUBLIC_KEY)"
-   docker compose exec locationserv python -c "from config import cfg; print(cfg.PUBLIC_KEY)"
-  Logs;
-  $ docker logs -f locationserv/
+## Checking the keys:
+ - docker compose exec adminserver python -c "import config,hashlib; print(config.PUBLIC_KEY)"
+ - docker compose exec locationserv python -c "from config import cfg; print(cfg.PUBLIC_KEY)"
+## Logs:
+ - docker logs -f locationserv/

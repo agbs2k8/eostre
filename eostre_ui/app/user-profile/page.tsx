@@ -3,6 +3,7 @@
 import { useAuth } from "@utils/authProvider";
 import { useEffect, useState } from "react";
 import { apiClient } from "@utils/apiClient";
+import { Button } from "@ui-components/Button";
 
 export interface Grant {
   account_id: number;
@@ -109,80 +110,75 @@ export default function ProfilePage() {
   if (!user) return <p>No profile data</p>;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold">My Profile</h1>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="flex min-h-screen justify-center">
+      <form onSubmit={handleSubmit} className="w-80 rounded bg-brand-light text-brand-dark dark:bg-brand-dark dark:text-brand-light p-6 shadow space-y-4">
+        <h1 className="text-2xl font-bold">User Profile</h1>
         {/* Editable fields */}
         <div>
-          <label className="block font-medium">Username</label>
+          <label className="block font-medium bg-brand-light dark:bg-brand-dark dark:text-brand-light">Username</label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="mt-1 block w-full border rounded p-2"
+            className="mt-1 block w-full border rounded p-2 dark:bg-brand-dark dark:text-brand-light"
           />
         </div>
 
         <div>
-          <label className="block font-medium">Personal Name</label>
+          <label className="block font-medium bg-brand-light dark:bg-brand-dark dark:text-brand-light">Personal Name</label>
           <input
             type="text"
             value={personalName}
             onChange={(e) => setPersonalName(e.target.value)}
-            className="mt-1 block w-full border rounded p-2"
+            className="mt-1 block w-full border rounded p-2 dark:bg-brand-dark dark:text-brand-light"
           />
         </div>
 
         <div>
-          <label className="block font-medium">Family Names</label>
+          <label className="block font-medium bg-brand-light dark:bg-brand-dark dark:text-brand-light">Family Names</label>
           <input
             type="text"
             value={familyNames}
             onChange={(e) => setFamilyNames(e.target.value)}
-            className="mt-1 block w-full border rounded p-2"
+            className="mt-1 block w-full border rounded p-2 dark:bg-brand-dark dark:text-brand-light"
           />
         </div>
 
         <div>
-          <label className="block font-medium">Display Name</label>
+          <label className="block font-medium bg-brand-light dark:bg-brand-dark dark:text-brand-light">Display Name</label>
           <input
             type="text"
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
-            className="mt-1 block w-full border rounded p-2"
+            className="mt-1 block w-full border rounded p-2 dark:bg-brand-dark dark:text-brand-light"
           />
         </div>
 
         {/* Read-only fields */}
         <div>
-          <label className="block font-medium">Type</label>
-          <p>{user.type}</p>
+          <label className="block font-medium bg-brand-light dark:bg-brand-dark dark:text-brand-light">Type</label>
+          <p className="bg-brand-light dark:bg-brand-dark dark:text-brand-light">{user.type}</p>
         </div>
 
         <div>
-          <label className="block font-medium">Email</label>
-          <p>{user.email}</p>
+          <label className="block font-medium bg-brand-light dark:bg-brand-dark dark:text-brand-light">Email</label>
+          <p className="bg-brand-light dark:bg-brand-dark dark:text-brand-light">{user.email}</p>
         </div>
 
         <div>
-          <label className="block font-medium">Alternate Emails</label>
-          <p>{user.alternate_emails.join(", ") || "—"}</p>
+          <label className="block font-medium bg-brand-light dark:bg-brand-dark dark:text-brand-light">Alternate Emails</label>
+          <p className="bg-brand-light dark:bg-brand-dark dark:text-brand-light">{user.alternate_emails.join(", ") || "—"}</p>
         </div>
 
         <div>
-          <label className="block font-medium">Created</label>
-          <p>{new Date(user.created_date).toLocaleString()}</p>
+          <label className="block font-medium bg-brand-light dark:bg-brand-dark dark:text-brand-light">Created</label>
+          <p className="bg-brand-light dark:bg-brand-dark dark:text-brand-light">{new Date(user.created_date).toLocaleString()}</p>
         </div>
 
         {/* Submit */}
-        <button
-          type="submit"
-          disabled={saving}
-          className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
-        >
-          {saving ? "Saving..." : "Save Changes"}
-        </button>
+        <Button type="submit" aria-label="Submit">
+          Submit
+        </Button>
       </form>
     </div>
   );
