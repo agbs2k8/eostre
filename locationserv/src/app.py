@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from config import cfg
 from src.routes import router
 from src.db import init_db, get_db, client, ensure_indexes
+from src.logging_helper import LoggingMiddleware
 
 
 @asynccontextmanager
@@ -30,5 +31,8 @@ def create_app() -> FastAPI:
     
     # Routes
     app.include_router(router)
+
+    # Logging Middleware
+    app.add_middleware(LoggingMiddleware)
     
     return app

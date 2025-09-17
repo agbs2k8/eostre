@@ -19,24 +19,13 @@ class Settings(BaseSettings):
     DATABASE_PASSWORD: str = os.getenv("DATABASE_PASSWORD", "password")
 
     # Token handling - paths only
-    #PUBLIC_KEY_PATH: str = os.getenv("PUBLIC_KEY_PATH", "public_key.pem")
-    # Public and Private Key Paths
     KEYS_DIR: str = pathlib.Path(os.getenv("KEYS_DIR", "../keys"))
-
     PUBLIC_KEY_PATH: str = pathlib.Path(
         os.getenv("PUBLIC_KEY_PATH", KEYS_DIR / "public_key.pem")
     )
     ENCRYPT_ALGORITHM: str = "RS256"
-    def _read_required(path: pathlib.Path, name: str) -> str:
-        if not path.exists():
-            raise FileNotFoundError(
-                f"{name} not found at {path}. "
-                f"Set {name.upper()}_PATH or KEYS_DIR. Mounted keys dir contents: {list(KEYS_DIR.glob('*'))}"
-            )
-        return path.read_text(encoding="utf-8")
-
-    PUBLIC_KEY: str = _read_required(PUBLIC_KEY_PATH, "public_key")
-
+    PUBLIC_KEY: str = pathlib.Path(PUBLIC_KEY_PATH).read_text()
+    LOG_JSON: bool = os.getenv("LOG_JSON", "false").lower() == "true"
     LOG_CONFIG: dict = {}
 
     def model_post_init(self, __context):
@@ -92,5 +81,16 @@ class Settings(BaseSettings):
                 "handlers": ["console", "stderr"]
             },
         }
+        base_formatter = {
+            "format": "[%(asctime)s] [%(process)d] [%(levelname)s] in %(module)s: %(message)s",
+            "datefmt": "%Y-%m-%dT%H:%M:%S%z",
+        }
+        json_formatter = {
+            "format": '{"ts":"%(asctime)s","lvl":"%(levelname)s","logger":"%(name)s",'
+                      '"module":"%(module)s","user":"%(user_id)s","msg":"%(message)s"}',
+            "datefmt": "%Y-%m-%dT%H:%M:%S%z",
+        }
+        log_format = json_formatter if self.LOG_JSON else base_formatter
+        self.LOG_CONFIG["formatters"]["default"] = log_format
 
 cfg = Settings()

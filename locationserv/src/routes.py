@@ -5,6 +5,9 @@ from bson import ObjectId
 from src.models import Location, LocationListResponse
 from src.db import get_db
 from src.token_manager import token_manager
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = fastapi.APIRouter()
 
@@ -35,6 +38,7 @@ async def list_locations(
     Return a list of all locations for the user's account.  Will filter out inactive/deleted by default, but will
     return inactive/deleted locations if specified by ID. 
     """
+    logger.info(f"User {g.user['sub']} Retrieving Locations.")
     account_id = str(user["account_id"])
     filter_query = {"account_id":account_id} 
     if ids:
