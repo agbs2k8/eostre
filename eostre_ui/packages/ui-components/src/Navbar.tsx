@@ -17,13 +17,28 @@ export function Navbar() {
     return name[0].toUpperCase();
   };
 
+  // Load theme preference on first mount
+  useEffect(() => {
+    const storedTheme = localStorage.getItem("theme");
+
+    if (storedTheme) {
+      setIsDark(storedTheme === "dark");
+    } else {
+      // Fall back to system preference
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      setIsDark(prefersDark);
+    }
+  }, []);
+
   // Apply/remove 'dark' class on <html> element
   useEffect(() => {
     const root = window.document.documentElement;
     if (isDark) {
       root.classList.add("dark");
+      localStorage.setItem("theme", "dark");
     } else {
       root.classList.remove("dark");
+      localStorage.setItem("theme", "light");
     }
   }, [isDark]);
 
