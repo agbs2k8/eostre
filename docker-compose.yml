@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   adminserver:
     build:
@@ -35,8 +33,6 @@ services:
     volumes:
       - ./keys:/app/keys:ro
       - ./locationserv:/app   # dev only
-    depends_on:
-      - mongo
     ports:
       - "8001:8000"
     restart: unless-stopped
@@ -67,23 +63,3 @@ services:
     ports:
       - "3000:3000"
     restart: unless-stopped
-
-  mongo:
-    image: mongo:7.0
-    container_name: mongo_db
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "mongosh", "--quiet", "--username=root", "--password=example", "--eval", "db.runCommand({ ping: 1 })"]
-      interval: 30s
-      timeout: 5s
-      retries: 5
-
-volumes:
-  mongo_data:
