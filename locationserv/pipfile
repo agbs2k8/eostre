@@ -10,6 +10,7 @@ pydantic = ">=1.10.22"
 pydantic-settings = ">=2.10.1"
 pymongo = ">=4.14.0"
 PyJWT = ">=2.10.1"
+cryptography = ">=45.0.5"
 
 
 [dev-packages]

@@ -20,32 +20,30 @@ async def readiness():
     return {"message": "ok"}
 
 
-@router.get("/location", 
-            response_model=LocationListResponse,
-            summary="List all locations",
+@router.get("/location", response_model=LocationListResponse, summary="List all locations",
             description="Returns a list of all locations the current user's account")
 async def list_locations(
     db = fastapi.Depends(get_db),
-    ids: Optional[List[str]] = fastapi.Query(default=None, 
-                                             alias="id",
-                                             title="Location IDs",
-                                             description="A list of location IDs to filter by. If omitted, all active, non-deleted locations are returned.",
-                                             examples={"example_ids": {"value": ["64e4b2f2c9e77b2b8c8e4b2f"]}} # type: ignore
-                                             ),
+    ids: Optional[List[str]] = fastapi.Query(
+        default=None,
+        alias="id",
+        title="Location IDs",
+        description="A list of location IDs to filter by. If omitted, all active, non-deleted locations are returned.",
+        examples={"example_ids": {"value": ["64e4b2f2c9e77b2b8c8e4b2f"]}}  # type: ignore
+    ),
     user: dict = fastapi.Depends(token_manager.require_permissions("account.read"))
 ):
     """
-    Return a list of all locations for the user's account.  Will filter out inactive/deleted by default, but will
-    return inactive/deleted locations if specified by ID. 
+    Return a list of all locations for the user's account.
     """
-    logger.info(f"User {g.user['sub']} Retrieving Locations.")
+    logger.info("retrieving_locations user=%s acct=%s", user.get("sub"), user.get("account_id"))
     account_id = str(user["account_id"])
-    filter_query = {"account_id":account_id} 
+    filter_query = {"account_id": account_id}
     if ids:
         object_ids = [ObjectId(id_) for id_ in ids]
-        filter_query = filter_query | {"_id":{"$in": object_ids}}
+        filter_query |= {"_id": {"$in": object_ids}}
     else:
-        filter_query = filter_query | {"deleted": False, "active": True}  # Everything not deleted
+        filter_query |= {"deleted": False, "active": True}
     cursor = db["locations"].find(filter_query)
     docs = await cursor.to_list(length=None)
     locations = [loc for doc in docs if (loc := Location.deserialize(doc)) is not None]

@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     KEYS_DIR: Path = Path(os.getenv("KEYS_DIR", "/app/keys"))
     PUBLIC_KEY_PATH: Path = Field(default_factory=lambda: Path(os.getenv("PUBLIC_KEY_PATH", "/app/keys/public_key.pem")))
     ENCRYPT_ALGORITHM: str = os.getenv("ENCRYPT_ALGORITHM", "RS256")
+    TOKEN_AUDIENCE: str = os.getenv("TOKEN_AUDIENCE", "")
+    TOKEN_ISSUER: str = os.getenv("TOKEN_ISSUER", "")
 
     # Database (raw values only; no secrets in logs)
     DATABASE_URL: str = os.getenv("DATABASE_URI", "localhost:27017")
