@@ -40,23 +40,6 @@ PUBLIC_KEY = _read_required(PUBLIC_KEY_PATH, "public_key")
 LOG_CONFIG = {
     "version": 1,
     "disable_existing_loggers": False,
-    "loggers": {
-        # "flask.app": {
-        #     "level": "ERROR",
-        #     "handlers": ["wsgi"],
-        #     "propagate": False,
-        # },
-         "quart.app": {  
-            "level": LOG_LEVEL,
-            "handlers": ["console","wsgi"],
-            "propagate": False,
-        },
-        "__main__": { 
-            "level": LOG_LEVEL,
-            "handlers": ["console", "wsgi"],
-            "propagate": False,
-        },
-    },
     "formatters": {
         "default": {
             "format": "[%(asctime)s] [%(process)d] [%(levelname)s] in %(module)s: %(message)s",
@@ -64,16 +47,38 @@ LOG_CONFIG = {
         }
     },
     "handlers": {
-        "wsgi": {
+        "stdout": {
             "class": "logging.StreamHandler",
-            "stream": "ext://flask.logging.wsgi_errors_stream",
+            "stream": sys.stderr,
             "formatter": "default",
         },
-         "console": {
+         "stderr": {
             "class": "logging.StreamHandler",
-            "stream": sys.stdout,
+            "stream": sys.stderr,
             "formatter": "default",
         }
     },
-    "root": {"level": LOG_LEVEL, "handlers": ["console", "wsgi"]},
+    "loggers": {
+        "quart.app": {
+            "level": LOG_LEVEL,
+            "handlers": ["stdout"],
+            "propagate": False,
+        },
+        "hypercorn.error": {
+            "level": LOG_LEVEL,
+            "handlers": ["stderr"],
+            "propagate": False,
+        },
+        "hypercorn.access": {
+            "level": LOG_LEVEL,
+            "handlers": ["stdout"],
+            "propagate": False,
+        },
+        "__main__": {
+            "level": LOG_LEVEL,
+            "handlers": ["stdout"],
+            "propagate": False,
+        },
+    },
+    "root": {"level": LOG_LEVEL, "handlers": ["stdout"]},
 }
