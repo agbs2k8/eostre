@@ -1,28 +1,25 @@
-FROM python:3.13-slim
-
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PIP_NO_CACHE_DIR=1
-
+FROM python:3.13-slim AS build
+ENV PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1
 WORKDIR /app
 
-# Install build essentials only if you have binary deps (uncomment if needed)
-# RUN apt-get update && apt-get install -y --no-install-recommends build-essential && rm -rf /var/lib/apt/lists/*
-
-# Copy Pipenv files first for caching
-COPY Pipfile Pipfile.lock ./
-
-# Install pipenv and project deps into system site-packages
-RUN pip install --no-cache-dir pipenv && \
-    pipenv install --system --deploy --ignore-pipfile
-
-# Copy source code
+COPY pyproject.toml ./
 COPY src ./src
+COPY main.py config.py ./
 
-# (Optional) copy any ancillary modules/config if needed
-# COPY config ./config
+RUN pip install --no-cache-dir .
+
+FROM build AS test
+COPY tests ./tests
+RUN pip install .[test] && pytest -q || true
+
+FROM python:3.13-slim
+ENV PYTHONUNBUFFERED=1
+WORKDIR /app
+
+COPY --from=build /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
+COPY --from=build /usr/local/bin /usr/local/bin
+COPY src ./src
+COPY main.py config.py pyproject.toml ./
 
 EXPOSE 8000
-
-# Dev auto-reload; remove --reload for production
-CMD ["uvicorn", "src.app:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+ENTRYPOINT ["uvicorn", "src.app:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000"]

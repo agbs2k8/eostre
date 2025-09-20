@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools >= 77.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "locationserv"
+description = "Microservice to CRUD location objects & search within a radius"
+version = "0.0.1"
+
+requires-python = ">=3.13"
+dependencies = [
+    "uvicorn[standard]",
+    "fastapi",
+    "pydantic", 
+    "pydantic-settings",
+    "pymongo",
+    "PyJWT[crypto]",
+    "cryptography",
+    "gunicorn"
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest", 
+    "pytest-mock", 
+    "requests", 
+    "pytest-asyncio", 
+    "httpsx",
+    "pytest-cov",
+    "mongomock"
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
