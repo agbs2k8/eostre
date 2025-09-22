@@ -20,7 +20,9 @@ async def readiness():
     return {"message": "ok"}
 
 
-@router.get("/location", response_model=LocationListResponse, summary="List all locations",
+@router.get("/location", 
+            response_model=LocationListResponse, 
+            summary="List all locations",
             description="Returns a list of all locations the current user's account")
 async def list_locations(
     db = fastapi.Depends(get_db),
@@ -50,13 +52,18 @@ async def list_locations(
     return LocationListResponse(data=locations)
 
 
-@router.post("/location")
+@router.post("/location",
+             response_model=LocationListResponse, 
+             summary="Add a single location to the database",
+             description="Add a new location and returns a unique ID for that location.")
 async def add_location(
     location: Location,
     db = fastapi.Depends(get_db),
     user: dict = fastapi.Depends(token_manager.require_permissions("account.write"))
 ):
-    
+    """
+    TODO - check the swagger file and update the documentation as appropriate
+    """
     # Ensure the created_by/modified_by both are set appropriately
     location.created_by = user["sub"]
     location.modified_by = user["sub"]

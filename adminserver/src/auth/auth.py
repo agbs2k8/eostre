@@ -8,7 +8,7 @@ from src.services.schema import UserInput, RefreshTokenInput, AccountRequired
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
-
+# TODO - move this into the actual auth manager itself 
 async def generate_user_payload(user: User, account_id: str, db_session: AsyncSession):
     permissions = await user.get_permissions(db_session)
     if account_id in permissions.keys():

@@ -67,7 +67,14 @@ async def get_users():
 @user_bp.route('/', methods=['POST'])
 @auth_manager.jwt_required()
 async def add_user():
-    # TODO - update other uses on the account
+    """
+    Add a new user to the current account.
+    """
+    session = g.db_session
+    account_id = g.user["account_id"]
+    logger.info(f"User {g.user['sub']} Adding user for account {account_id}")
+    
+    # TODO - add user on the account
     return jsonify({"message": "ok"}), 200
 
 

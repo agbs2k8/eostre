@@ -44,3 +44,4 @@ async def update_account():
 async def delete_account():
     # Delete account
     return jsonify({"action": "delete"})
+
