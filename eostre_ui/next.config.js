@@ -14,6 +14,7 @@ const LOCATION_INTERNAL = pick(
 );
 
 module.exports = {
+  trailingSlash: false,
   async rewrites() {
     const admin = ADMIN_INTERNAL.replace(/\/$/, "");
     const loc = LOCATION_INTERNAL.replace(/\/$/, "");
