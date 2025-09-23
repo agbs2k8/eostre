@@ -11,7 +11,7 @@ account_user_bp = Blueprint("account_user_v1", __name__, url_prefix="/user")
 
 @account_user_bp.route("/", methods=["GET"])
 @auth_manager.jwt_required()
-@auth_manager.require_permissions("account.read")
+#@auth_manager.require_permissions("account.read")
 async def get_account_users():
     account_id = g.user["account_id"]
     logger.info(f"User {g.user['sub']} retrieving the users for the account {account_id}")

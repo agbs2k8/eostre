@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
 import { loginRequest, refreshRequest } from "./authClient";
+import { useRouter } from "next/navigation";
 
 interface TokenPayload {
   sub: string;
@@ -38,6 +39,7 @@ function safeDecode(token: string): TokenPayload | null {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [user, setUser] = useState<TokenPayload | null>(null);
+  const router = useRouter();
 
   // Load from localStorage on mount (client side)
   useEffect(() => {
@@ -80,12 +82,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    try {
+      // Call backend to clear refresh cookie
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (err) {
+      console.error("Logout request failed:", err);
+    }
+    // Clear client state
     setAccessToken(null);
     setUser(null);
     localStorage.removeItem(ACCESS_TOKEN_KEY);
-    // Optionally call backend invalidate endpoint
-  }, []);
+
+    router.push("/");
+  }, [router]);
 
   // Optional: auto refresh shortly before expiry
   useEffect(() => {

@@ -8,7 +8,15 @@ import { Button } from "@ui-components/Button";
 import { Drawer } from "@ui-components/Drawer";
 import { ProtectedRoute } from "@utils/ProtectedRoute";
 
-export default function Home() {
+export default function LocationsPage() {
+  return (
+    <ProtectedRoute>
+      <Locations />
+    </ProtectedRoute>
+  );
+}
+
+function Locations() {
   const { accessToken } = useAuth();
   const [rowData, setRowData] = useState<TableRow[]>([]);
   const [isAddOpen, setAddOpen] = useState(false);
@@ -75,7 +83,6 @@ export default function Home() {
 
   return (
     <>
-      <ProtectedRoute>
         <div className="font-sans min-h-screen p-8 sm:p-20 bg-brand-light text-brand-dark dark:bg-brand-dark dark:text-brand-light">
           <main className="flex flex-col gap-8 w-full">
             {/* Header with title and +Add button */}
@@ -120,7 +127,6 @@ export default function Home() {
             </div>
           </form>
         </Drawer>
-      </ProtectedRoute>
     </>
   );
 }

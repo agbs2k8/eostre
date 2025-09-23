@@ -58,7 +58,7 @@ async def login():
         "token_type": "Bearer"
     })
 
-    response.set_cookie("refresh_token", refresh_token, httponly=True, samesite="Strict", secure=True, path="/api/auth/refresh")
+    response.set_cookie("refresh_token", refresh_token, httponly=True, samesite="Lax", secure=False, path="/")
 
     return response
 
@@ -87,7 +87,7 @@ async def refresh_token():
     new_refresh_tooken = auth_manager.create_refresh_token(user_data)
     # Build response & set the cookie with the new refresh token
     response = jsonify({"access_token": new_access_token})
-    response.set_cookie("refresh_token", new_refresh_tooken, httponly=True, samesite="Strict", secure=True, path="/api/auth/refresh")
+    response.set_cookie("refresh_token", new_refresh_tooken, httponly=True, samesite="Lax", secure=False, path="/")
 
     return response
 
@@ -115,6 +115,6 @@ async def switch_account():
 async def logout():
     response = jsonify({"message": "Logout successful."})
     # Wipe out the refresh-token from the cookie
-    response.set_cookie("refresh_token", "", httponly=True, secure=True, samesite="Strict", max_age=0)
+    response.set_cookie("refresh_token", "", httponly=True, secure=False, samesite="Lax", max_age=0)
 
     return response

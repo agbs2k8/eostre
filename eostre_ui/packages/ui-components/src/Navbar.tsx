@@ -1,16 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { Home, User, Menu, ToggleLeft, ToggleRight } from "lucide-react";
+import { Home, User, Menu, ToggleLeft, ToggleRight, LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Drawer } from "@ui-components/Drawer";
 import { useAuth } from "@utils/authProvider";
+import { useUser } from "@utils/userProvider";
 import { Tooltip } from "@ui-components/Tooltip"
 
 export function Navbar() {
   const [isDark, setIsDark] = useState(false);
   const [isNavOpen, setNavOpen] = useState(false);
   const { accessToken, user, logout } = useAuth();
+  const { userProfile, loading } = useUser();
+  const currentAccountId = Number(user?.account_id);
+  const accountName =
+    userProfile?.grants.find(
+      (grant) => grant.account_id === currentAccountId
+    )?.account_display_name ?? null;
 
   const getInitials = (name: string | undefined) => {
     if (!name) return "~";
@@ -68,28 +75,40 @@ export function Navbar() {
           <div className="flex items-center space-x-4">
             {!accessToken ? (
               <>
+                {/* USER IS NOT LOGGED IN */}
                 <Link href="/login" className="text-white flex items-center gap-4">
-                  Login
-                  <User className="h-6 w-6 text-white" />
+                  <Tooltip text="Log In" position="left">
+                    <User className="h-6 w-6 text-white" />
+                  </Tooltip>
                 </Link>
               </>
             ) : (
               <div className="flex items-center gap-4">
-                {/* Logout button */}
+                {/* IF USER IS LOGGED IN */}
+                <Tooltip text="Account" position="left">
+                  <Link href="/account" className="no-underline text-white hover:no-underline">
+                    {accountName}
+                  </Link>
+                </Tooltip>
+                <Tooltip text="User Profile" position="left">
+                  <Link href="/user-profile" className="no-underline hover:no-underline">
+                    <div
+                      className="w-8 h-8 rounded-full bg-white text-brand-primary flex items-center justify-center font-bold text-sm">
+                      {getInitials(user?.username)}
+                    </div>
+                  </Link>
+                </Tooltip>
                 <button
                   onClick={logout}
                   className="text-white hover:text-gray-200 flex items-center gap-1"
                 >
-                  Logout
+                  <Tooltip text="Log Out" position="left">
+                    <LogOut className="h-5 w-5 text-white" />
+                  </Tooltip>
                 </button>
 
                 {/* User initials circle */}
-                <Link href="/user-profile" className="no-underline hover:no-underline">
-                  <div
-                    className="w-8 h-8 rounded-full bg-white text-brand-primary flex items-center justify-center font-bold text-sm">
-                    {getInitials(user?.username)}
-                  </div>
-                </Link>
+
               </div>
             )}
             <button

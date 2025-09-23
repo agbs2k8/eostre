@@ -95,6 +95,9 @@ async def remove_user():
 @user_bp.route("/me", methods=['GET'])
 @auth_manager.jwt_required()
 async def get_me():
+    """
+    Retrieve all of the pertinent data for the current user
+    """
     session = g.db_session
     logger.info(f"User {g.user['sub']} their personal record")
     result = await session.execute(

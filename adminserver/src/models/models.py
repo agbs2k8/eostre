@@ -321,6 +321,7 @@ class Grant(Base):
             "user_id": self.user_id,
             "account_id": self.account_id,
             "account_name": self.account.name,
+            "account_display_name": self.account.display_name,
             "revoked_date": self.revoked_date.isoformat() if self.revoked_date else None,
         }
 
