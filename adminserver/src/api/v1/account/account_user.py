@@ -9,6 +9,7 @@ import logging
 logger = logging.getLogger(__name__)
 account_user_bp = Blueprint("account_user_v1", __name__, url_prefix="/user")
 
+@account_user_bp.route("", methods=["GET"])
 @account_user_bp.route("/", methods=["GET"])
 @auth_manager.jwt_required()
 #@auth_manager.require_permissions("account.read")

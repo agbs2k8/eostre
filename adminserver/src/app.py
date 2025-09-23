@@ -15,6 +15,9 @@ def create_app():
     # Instantiate the application
     app = Quart(__name__)
 
+    # Allow urls to end with erroneous extra /
+    app.url_map.strict_slashes = False
+
     # Quart CORS 
     app = cors(
         app,
@@ -39,7 +42,6 @@ def create_app():
     # Schema
     QuartSchema(app, convert_casing=True)
     app.config["QUART_SCHEMA_CONVERSION_PREFERENCE"] = "pydantic"
-    
     
     # Database
     @app.before_serving
