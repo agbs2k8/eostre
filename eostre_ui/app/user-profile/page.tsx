@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { apiClient } from "@utils/apiClient";
 import { Button } from "@ui-components/Button";
 import { ProtectedRoute } from "@utils/ProtectedRoute";
 import { useUser } from "@utils/userProvider";

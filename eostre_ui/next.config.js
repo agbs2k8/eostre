@@ -15,13 +15,14 @@ const LOCATION_INTERNAL = pick(
 
 module.exports = {
   trailingSlash: false,
+  skipTrailingSlashRedirect: true,
   async rewrites() {
-    const admin = ADMIN_INTERNAL.replace(/\/$/, "");
-    const loc = LOCATION_INTERNAL.replace(/\/$/, "");
-    return [
-      { source: "/api/auth/:path*",       destination: `${admin}/auth/:path*` },
-      { source: "/api/locationserv/:path*", destination: `${loc}/:path*` },
-      { source: "/api/v1/:path*",         destination: `${admin}/api/v1/:path*` },
-    ];
-  },
+  const admin = ADMIN_INTERNAL.replace(/\/$/, "");
+  const loc = LOCATION_INTERNAL.replace(/\/$/, "");
+  return [
+    { source: "/api/auth/:path*",         destination: `${admin}/auth/:path*` },
+    { source: "/api/locationserv/:path*", destination: `${loc}/:path*` },
+    { source: "/api/v1/:path*",           destination: `${admin}/api/v1/:path*` }
+  ];
+}
 };

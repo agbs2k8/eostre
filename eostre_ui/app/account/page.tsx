@@ -72,8 +72,8 @@ function AccountForm() {
   const fetchUsers = async () => {
     try {
       console.log("Fetching users with token:", accessToken);
-      const res = await apiClient<{ data: ApiAccountUsers[] }>("/api/v1/account/user", accessToken);
-      const tableRows: UsersTableRow[] = res.data.map(item => ({
+      const res = await apiClient<ApiAccountUsers[]>("http://localhost:5000/api/v1/account/user", accessToken);
+      const tableRows: UsersTableRow[] = res.map(item => ({
         name: item.name,
         email: item.email,
         modifiedDate: item.modified_date,
@@ -97,9 +97,6 @@ function AccountForm() {
                           <h1 className="text-2xl font-bold text-brand-primary dark:text-accent-cyan">
                             {accountName}
                           </h1>
-                          <div>
-                            {accessToken}
-                          </div>
                           <Button
                             onClick={() => true}
                             aria-label="Open add location drawer"

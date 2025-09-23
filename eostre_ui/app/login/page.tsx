@@ -16,7 +16,7 @@ export default function LoginPage() {
     e.preventDefault();
     try {
       await login(username, password);
-      router.push("/location");
+      router.push("/");
     } catch (err) {
       console.error("Login error:", err);
       setError("Invalid username or password");
