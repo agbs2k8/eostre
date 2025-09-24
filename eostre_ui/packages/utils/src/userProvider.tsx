@@ -5,12 +5,12 @@ import { apiClient } from "@utils/apiClient";
 import { useAuth } from "@utils/authProvider";
 
 export interface Grant {
-  account_id: number;
+  account_id: string;
   account_name: string;
   account_display_name: string;
   active: boolean;
   granted_date: string;
-  id: number;
+  id: string;
   revoked_date: string | null;
   role_id: number;
   role_name: string;
@@ -21,14 +21,21 @@ export interface Permissions {
   [accountId: string]: string[];
 }
 
+export interface Email {
+  active: boolean,
+  created_date: string,
+  email: string,
+  id: string,
+  primary:boolean
+}
+
 export interface UserProfile {
-  id: number;
+  id: string;
   name: string;
   display_name: string;
   personal_name: string | null;
   family_names: string | null;
-  email: string;
-  alternate_emails: string[];
+  emails: Email[];
   type: "service" | "person" | string;
   active: boolean;
   deleted: boolean;

@@ -101,17 +101,12 @@ async function handleSubmit(e: React.FormEvent) {
             {/* Read-only fields */}
             <div>
               <label className="block font-medium bg-brand-light dark:bg-brand-dark dark:text-brand-light">Type</label>
-              <p className="bg-brand-light dark:bg-brand-dark dark:text-brand-light">{userProfile.type}</p>
+              <p className="bg-brand-light dark:bg-brand-dark dark:text-brand-light">{userProfile?.type}</p>
             </div>
 
             <div>
-              <label className="block font-medium bg-brand-light dark:bg-brand-dark dark:text-brand-light">Email</label>
-              <p className="bg-brand-light dark:bg-brand-dark dark:text-brand-light">{userProfile.email}</p>
-            </div>
-
-            <div>
-              <label className="block font-medium bg-brand-light dark:bg-brand-dark dark:text-brand-light">Alternate Emails</label>
-              <p className="bg-brand-light dark:bg-brand-dark dark:text-brand-light">{userProfile.alternate_emails.join(", ") || "—"}</p>
+              <label className="block font-medium bg-brand-light dark:bg-brand-dark dark:text-brand-light">User Emails</label>
+              <p className="bg-brand-light dark:bg-brand-dark dark:text-brand-light">{userProfile?.emails?.map(e => e.email).join(", ") || "—"}</p>
             </div>
 
             <div>

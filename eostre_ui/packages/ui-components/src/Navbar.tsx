@@ -14,7 +14,7 @@ export function Navbar() {
   const [isNavOpen, setNavOpen] = useState(false);
   const { accessToken, user, logout } = useAuth();
   const { userProfile, loading } = useUser();
-  const currentAccountId = Number(user?.account_id);
+  const currentAccountId = user?.account_id;
   const accountName =
     userProfile?.grants.find(
       (grant) => grant.account_id === currentAccountId
