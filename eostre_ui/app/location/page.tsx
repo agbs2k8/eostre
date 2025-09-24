@@ -7,6 +7,8 @@ import { DataTable } from "@ui-components/DataTable";
 import { Button } from "@ui-components/Button";
 import { Drawer } from "@ui-components/Drawer";
 import { ProtectedRoute } from "@utils/ProtectedRoute";
+import ReactJson from "react-json-view";
+import { useThemeContext } from "@/packages/utils/src";
 
 export default function LocationsPage() {
   return (
@@ -20,6 +22,9 @@ function Locations() {
   const { accessToken } = useAuth();
   const [rowData, setRowData] = useState<TableRow[]>([]);
   const [isAddOpen, setAddOpen] = useState(false);
+  const [selectedRow, setSelectedRow] = useState<any | null>(null);
+  const {isDark, setIsDark} = useThemeContext();
+
 
   interface ApiLocation {
     _id: string;
@@ -69,12 +74,14 @@ function Locations() {
     apiClient<{ data: ApiLocation[] }>("/locationserv/location", accessToken)
       .then(res => {
         const tableRows: TableRow[] = res.data.map(item => ({
+          id: item._id,
           name: item.display_name,
           createdBy: item.created_by,
           createdDate: item.created_date,
           modifiedDate: item.modified_date,
           geoPoint: item.geo_point?.coordinates?.join(", ") || "",
           address: item.address?.formattedAddress || "",
+          fullObject: item,
         }));
         setRowData(tableRows);
       })
@@ -104,9 +111,35 @@ function Locations() {
               rowData={rowData} 
               autoHeight={true}
               paginationPageSize={10}
+              onRowClick={(row) => setSelectedRow(row)}
             />
           </main>
         </div>
+        {/* Drawer for viewing location details */}
+        <Drawer
+         isOpen={!!selectedRow} 
+            onClose={() => setSelectedRow(null)}
+            title="Edit Location"
+            side="right"
+            variant="form"
+        >
+          {selectedRow ? (
+            <div className="p-4">
+              <h2 className="text-lg font-bold">{selectedRow.name}</h2>
+              <ReactJson
+                src={selectedRow.fullObject}
+                name={false}
+                collapsed={2}
+                enableClipboard={true}
+                displayDataTypes={false} 
+                indentWidth={2}
+                iconStyle={"triangle"}
+                theme={isDark ? "railscasts" : "rjv-default"}
+              />
+            </div>
+          ) : null}
+        </Drawer>
+
 
         {/* Drawer for adding locations */}
         <Drawer

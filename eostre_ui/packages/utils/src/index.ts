@@ -3,3 +3,4 @@ export * from "./authClient";
 export * from "./authProvider";
 export * from "./ProtectedRoute";
 export * from "./userProvider";
+export * from "./themeContext";

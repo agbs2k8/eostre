@@ -7,9 +7,10 @@ import { Drawer } from "@ui-components/Drawer";
 import { useAuth } from "@utils/authProvider";
 import { useUser } from "@utils/userProvider";
 import { Tooltip } from "@ui-components/Tooltip"
+import { useThemeContext } from "@/packages/utils/src";
 
 export function Navbar() {
-  const [isDark, setIsDark] = useState(false);
+  const { isDark, setIsDark } = useThemeContext();  
   const [isNavOpen, setNavOpen] = useState(false);
   const { accessToken, user, logout } = useAuth();
   const { userProfile, loading } = useUser();
