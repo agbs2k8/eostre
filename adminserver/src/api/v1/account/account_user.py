@@ -25,18 +25,22 @@ async def get_account_users():
                 User.active == True,
                 User.deleted == False)
         .options(
-            sqlalchemy.orm.selectinload(User.email),
+            sqlalchemy.orm.selectinload(User.emails),
             sqlalchemy.orm.selectinload(User.grants)
                 .selectinload(Grant.role)
         )   
     )
     users = result.scalars().unique().all()
     async def user_record(user: User):
+        primary_email = next(
+            (e.email for e in user.emails if e.primary and e.active and not e.deleted), 
+            None
+        )
         user_obj = {
             'id': user.id,
             'name': user.name,
             'type': user.type,
-            'email': str(user.email),
+            'email': primary_email,
             'created_date': user.created_date.isoformat(),
             'modified_date': user.modified_date.isoformat(),
             'grants': [await grant.to_dict() for grant in user.grants if grant.account_id == account_id]

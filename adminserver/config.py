@@ -9,12 +9,19 @@ APP_VERSION = "0.0.1"
 LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG").upper()
 APP_SECRET_KEY = os.getenv("APP_SECRET_KEY", uuid.uuid4().hex)
 APP_URL = os.getenv("APP_URL", "http://127.0.0.1:5000")
-DATABASE_URI = os.getenv("DATABASE_URI", "sqlite+aiosqlite:///adminserver.db")
 SECURITY_PASSWORD_SALT = os.getenv("APP_PASSWORD_SALT", secrets.SystemRandom().getrandbits(128))
 ENCRYPT_ALGORITHM = "RS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 15
 REFRESH_TOKEN_EXPIRE_MINUTES = 10080
 CORS_ORIGIN = (os.getenv("CORS_ORIGIN", "http://localhost:3000"))
+
+# Handle Async vs Sync Database issues for Alembic
+DATABASE_URI = os.getenv("DATABASE_URI", "sqlite+aiosqlite:///adminserver.db")
+
+if DATABASE_URI.startswith("sqlite+aiosqlite"):
+    SYNC_DATABASE_URI = DATABASE_URI.replace("sqlite+aiosqlite", "sqlite", 1)
+else:
+    SYNC_DATABASE_URI = DATABASE_URI.replace("+asyncpg", "+psycopg2")  # for postgres
 
 # Public and Private Key Paths
 KEYS_DIR = pathlib.Path(os.getenv("KEYS_DIR", "keys"))

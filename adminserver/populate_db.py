@@ -18,7 +18,7 @@ if __name__ == "__main__":
     config_file = "./.env"
     with open(config_file, "r") as f:
         cfg_file = {x.split("=")[0].strip():x.split("=")[1].strip() for x in f.readlines()}
-    engine = sqlalchemy.create_engine(cfg.DATABASE_URI, echo=True, pool_pre_ping=True)
+    engine = sqlalchemy.create_engine(cfg.SYNC_DATABASE_URI, echo=True, pool_pre_ping=True)
 
     Base.metadata.create_all(engine)
 
