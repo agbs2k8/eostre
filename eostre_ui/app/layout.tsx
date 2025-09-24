@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { AuthProvider } from "@utils/authProvider";
 import { Navbar } from "@ui-components/Navbar"
 import { UserProvider } from "@utils/userProvider";
+import { ThemeProvider} from "@utils/themeContext";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -30,8 +31,10 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased font-sans`}>
         <AuthProvider>
           <UserProvider>
-            <Navbar />
-            <main className="pt-14">{children}</main> {/* padding so content isn't hidden under navbar */}
+            <ThemeProvider>
+              <Navbar />
+              <main className="pt-14">{children}</main> {/* padding so content isn't hidden under navbar */}
+            </ThemeProvider>
           </UserProvider>
         </AuthProvider>
       </body>
