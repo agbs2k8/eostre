@@ -74,7 +74,7 @@ function AccountForm() {
     const fetchUsers = async () => {
       try {
         console.log("Fetching users with token:", accessToken);
-        const res = await apiClient<ApiAccountUsers[]>("/api/v1/account/user", accessToken);
+        const res = await apiClient<ApiAccountUsers[]>("/v1api/account/user", accessToken);
         const tableRows: UsersTableRow[] = res.map(item => ({
           name: item.name,
           email: item.email,

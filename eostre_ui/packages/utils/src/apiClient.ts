@@ -1,6 +1,7 @@
 import { refreshRequest } from "./authClient";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+// Always use relative URLs so Next.js rewrites/proxy can handle routing
+const API_BASE_URL = "";
 
 export const apiClient = async <T>(
   path: string,
@@ -17,6 +18,7 @@ export const apiClient = async <T>(
     ...options,
   });
 
+  // Handle expired token → try refresh
   if (res.status === 401) {
     try {
       const newTokens = await refreshRequest();
@@ -32,10 +34,13 @@ export const apiClient = async <T>(
         ...options,
       });
     } catch (err) {
-      throw err;
+      throw err; // bubble up if refresh fails
     }
   }
 
-  if (!res.ok) throw new Error(`Error ${res.status}`);
+  if (!res.ok) {
+    throw new Error(`Error ${res.status}: ${res.statusText}`);
+  }
+
   return res.json();
 };

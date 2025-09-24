@@ -1,6 +1,6 @@
 const PUBLIC_ADMIN = process.env.NEXT_PUBLIC_ADMIN_API; // e.g. http://localhost:5000
 // If PUBLIC_ADMIN defined, go direct (CORS must allow it); else use rewrite path.
-const AUTH_BASE = PUBLIC_ADMIN ? `${PUBLIC_ADMIN.replace(/\/$/, "")}/auth` : "/api/auth";
+const AUTH_BASE = PUBLIC_ADMIN ? `${PUBLIC_ADMIN.replace(/\/$/, "")}/auth` : "/auth";
 
 export async function loginRequest(username: string, password: string) {
   const res = await fetch(`${AUTH_BASE}/login`, {

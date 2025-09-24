@@ -85,7 +85,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = useCallback(async () => {
     try {
       // Call backend to clear refresh cookie
-      await fetch("/api/auth/logout", {
+      await fetch("/auth/logout", {
         method: "POST",
         credentials: "include",
       });

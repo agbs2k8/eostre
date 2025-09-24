@@ -20,9 +20,18 @@ module.exports = {
   const admin = ADMIN_INTERNAL.replace(/\/$/, "");
   const loc = LOCATION_INTERNAL.replace(/\/$/, "");
   return [
-    { source: "/api/auth/:path*",         destination: `${admin}/auth/:path*` },
-    { source: "/api/locationserv/:path*", destination: `${loc}/:path*` },
-    { source: "/api/v1/:path*",           destination: `${admin}/api/v1/:path*` }
+    { 
+      source: "/auth/:path*",
+      destination: `${admin}/auth/:path*` 
+    },
+    { 
+      source: "/locationserv/:path*",
+      destination: `${loc}/:path*`
+    },
+    { 
+      source: "/v1api/:path*",
+      destination: `${admin}/api/v1/:path*`
+    }
   ];
 }
 };

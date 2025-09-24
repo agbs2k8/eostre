@@ -63,7 +63,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     setError(null);
     try {
-      const data = await apiClient<UserProfile>("/api/v1/user/me", accessToken);
+      const data = await apiClient<UserProfile>("/v1api/user/me", accessToken);
       setUserProfile(data);
     } catch (err) {
       setError("Failed to load user profile");
@@ -75,7 +75,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   async function updateUserProfile(updates: Partial<UserProfile>) {
     if (!accessToken) return null;
     try {
-      const updated = await apiClient<UserProfile>("/api/v1/user/me", accessToken, {
+      const updated = await apiClient<UserProfile>("/v1api/user/me", accessToken, {
         method: "POST",
         body: JSON.stringify(updates),
       });

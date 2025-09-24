@@ -66,7 +66,7 @@ function Locations() {
   ];
 
   useEffect(() => {
-    apiClient<{ data: ApiLocation[] }>("/api/locationserv/location", accessToken)
+    apiClient<{ data: ApiLocation[] }>("/locationserv/location", accessToken)
       .then(res => {
         const tableRows: TableRow[] = res.data.map(item => ({
           name: item.display_name,
@@ -99,7 +99,12 @@ function Locations() {
             </div>
 
             {/* DataTable */}
-            <DataTable columnDefs={columnDefs} rowData={rowData} />
+            <DataTable 
+              columnDefs={columnDefs} 
+              rowData={rowData} 
+              autoHeight={true}
+              paginationPageSize={10}
+            />
           </main>
         </div>
 
