@@ -2,7 +2,7 @@ import asyncio
 import sqlalchemy
 import sqlalchemy.orm
 from src.services.auth_manager import auth_manager
-from src.models.models import User, Grant, Role#, account_user_table
+from src.models.models import User, Grant, Role, Email#, account_user_table
 from quart import Blueprint, jsonify, g, request
 import logging
 
@@ -15,8 +15,7 @@ async def full_user_record(user: User, session):
         'id': user.id,
         'name': user.name,
         'type': user.type,
-        'email': str(user.email),
-        'alternate_emails': [str(email) for email in user.alternate_emails],
+        'emails': await asyncio.gather(*(e.to_dict() for e in user.emails)),
         'personal_name': user.personal_name,
         'family_names': user.family_names,
         'display_name': user.display_name,
@@ -50,8 +49,7 @@ async def get_users():
                        Grant.account_id == account_id,
                        Grant.active == True)))
         .options(
-            sqlalchemy.orm.selectinload(User.email),
-            sqlalchemy.orm.selectinload(User.alternate_emails),
+            sqlalchemy.orm.selectinload(User.emails),
             sqlalchemy.orm.selectinload(User.grants)
                 .selectinload(Grant.role)
                 .selectinload(Role.permissions),
@@ -98,27 +96,32 @@ async def get_me():
     """
     Retrieve all of the pertinent data for the current user
     """
-    session = g.db_session
-    logger.info(f"User {g.user['sub']} their personal record")
-    result = await session.execute(
-        sqlalchemy.select(User)
-        .where(
-            User.id == g.user['sub']
+    async with g.db_session as session:
+        logger.info(f"User {g.user['sub']} accessing their personal record")
+
+        result = await session.execute(
+            sqlalchemy.select(User)
+            .where(User.id == g.user['sub'])
+            .options(
+                sqlalchemy.orm.selectinload(User.emails),
+                sqlalchemy.orm.with_loader_criteria(
+                    Email,
+                    lambda e: (e.active == sqlalchemy.true()) & (e.deleted == sqlalchemy.false())
+                ),
+                sqlalchemy.orm.selectinload(User.grants)
+                    .selectinload(Grant.role)
+                    .selectinload(Role.permissions),
+                sqlalchemy.orm.selectinload(User.grants)
+                    .selectinload(Grant.account),
             )
-        .options(
-            sqlalchemy.orm.selectinload(User.email),
-            sqlalchemy.orm.selectinload(User.alternate_emails),
-            sqlalchemy.orm.selectinload(User.grants)
-                .selectinload(Grant.role)
-                .selectinload(Role.permissions),
-            sqlalchemy.orm.selectinload(User.grants)
-                .selectinload(Grant.account),
         )
-    )
-    users = result.scalars().all()
-    # TODO - fix the indexing here - that's garbage!!
-    user_dict = [await full_user_record(user, session) for user in users[:1]][0]
-    return jsonify(user_dict), 200
+
+        users = result.scalars().unique().all()
+        if not users:
+            return jsonify({"error": "User not found"}), 404
+
+        user_dict = await full_user_record(users[0], session)
+        return jsonify(user_dict), 200
 
 
 @user_bp.route("/me", methods=['PUT'])

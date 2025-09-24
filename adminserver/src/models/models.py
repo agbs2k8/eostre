@@ -1,3 +1,4 @@
+import uuid
 import secrets
 import datetime
 from collections import defaultdict
@@ -11,7 +12,12 @@ import config as cfg
 
 class Account(Base):
     __tablename__ = 'account'
-    id: Mapped[int] = mapped_column(sa.Integer, sa.Identity(), primary_key=True, autoincrement=True)
+    id: Mapped[str] = mapped_column(
+        sa.String(36), 
+        primary_key=True, 
+        default=lambda: str(uuid.uuid4()), 
+        unique=True
+    )
     name: Mapped[str] = mapped_column(sa.String(255), nullable=False, unique=True)
     display_name: Mapped[str] = mapped_column(sa.String(255), nullable=True)
     active: Mapped[bool] = mapped_column(default=True)
@@ -46,7 +52,12 @@ class Account(Base):
 
 class Permission(Base):
     __tablename__ = 'permission'
-    id: Mapped[int] = mapped_column(sa.Integer, sa.Identity(), primary_key=True, autoincrement=True)
+    id: Mapped[str] = mapped_column(
+        sa.String(36), 
+        primary_key=True, 
+        default=lambda: str(uuid.uuid4()), 
+        unique=True
+    )
     name: Mapped[str] = mapped_column(sa.String(255), nullable=False, unique=True)
     display_name: Mapped[str] = mapped_column(sa.String(255), nullable=True)
     active: Mapped[bool] = mapped_column(default=True)
@@ -76,7 +87,12 @@ class Permission(Base):
 
 class Role(Base):
     __tablename__ = 'role'
-    id: Mapped[int] = mapped_column(sa.Integer, sa.Identity(), primary_key=True, autoincrement=True)
+    id: Mapped[str] = mapped_column(
+        sa.String(36), 
+        primary_key=True, 
+        default=lambda: str(uuid.uuid4()), 
+        unique=True
+    )
     name: Mapped[str] = mapped_column(sa.String(255), nullable=False, unique=True)
     display_name: Mapped[str] = mapped_column(sa.String(255), nullable=True)
     active: Mapped[bool] = mapped_column(default=True)
@@ -111,9 +127,15 @@ class Role(Base):
 
 class Email(Base):
     __tablename__ = 'email'
-    id: Mapped[int] = mapped_column(sa.Integer, sa.Identity(), primary_key=True, autoincrement=True)
+    id: Mapped[str] = mapped_column(
+        sa.String(36), 
+        primary_key=True, 
+        default=lambda: str(uuid.uuid4()), 
+        unique=True
+    )
     email: Mapped[str] = mapped_column(sa.String(255), nullable=False, unique=True)
-    user_id: Mapped[int] = mapped_column(sa.ForeignKey("user.id"))
+    user_id: Mapped[str] = mapped_column(sa.ForeignKey("user.id"))
+    user: Mapped["User"] = relationship("User", back_populates="emails")
     primary: Mapped[bool] = mapped_column(default=False)
     active: Mapped[bool] = mapped_column(default=True)
     created_date: Mapped[datetime.datetime] = mapped_column(
@@ -124,16 +146,45 @@ class Email(Base):
         return f"Email(id={self.id!r}, email={self.email!r})"
     
     def __str__(self) -> str:
-        return str(self.email   )
+        return self.email
+    
+    async def to_dict(self):
+        return {
+            "id": self.id,
+            "email": self.email,
+            "primary": self.primary,
+            "active": self.active,
+            "created_date": self.created_date.isoformat()
+        }
+    
+    # Enfore single instance of primary per use when migrated to postgresql
+    # __table_args__ = (
+    #     # Enforce only one primary email per user
+    #     sa.Index(
+    #         "uq_primary_email_per_user",
+    #         "user_id",
+    #         unique=True,
+    #         postgresql_where=sa.text("primary = true"),
+    #     ),
+    # )
 
 
 class User(Base):
     __tablename__ = 'user'
-    id: Mapped[int] = mapped_column(sa.Integer, sa.Identity(), primary_key=True, autoincrement=True)
+    id: Mapped[str] = mapped_column(
+        sa.String(36), 
+        primary_key=True, 
+        default=lambda: str(uuid.uuid4()), 
+        unique=True
+    )
     name: Mapped[str] = mapped_column(sa.String(255), nullable=False, unique=True)
     type: Mapped[str] = mapped_column(sa.String(50), nullable=False, default="user")  # user vs service
-    email: Mapped[Email] = relationship('Email', lazy='selectin')
-    alternate_emails: Mapped[list["Email"]] = relationship('Email')
+    emails: Mapped[list["Email"]] = relationship(
+        "Email",
+        back_populates="user",
+        lazy="selectin",
+        cascade="all, delete-orphan"
+    )
     personal_name: Mapped[str] = mapped_column(sa.String(255), nullable=True)
     family_names: Mapped[list[str]] = mapped_column(sa.String(255), nullable=True)
     display_name: Mapped[str] = mapped_column(sa.String(255), nullable=True)
@@ -156,8 +207,6 @@ class User(Base):
                  family_names = None):
         self.name = name
         self.type = type
-        self.email = Email(email=email, primary=True)
-        self.alternate_emails = []
         self.personal_name = personal_name
         self.family_names = [x.strip() for x in family_names.split(',')] if family_names else None
         self.display_name = display_name
@@ -166,12 +215,18 @@ class User(Base):
         self.modified_date = datetime.datetime.now(tz=datetime.timezone.utc)
         self.password = generate_password_hash(password)
         self.deleted = False
+        if email:
+            self.emails.append(Email(email=email, primary=True))
 
     def __repr__(self):
         return f"User(id={self.id!r}, name={self.name!r})"
     
     def __hash__(self):
         return hash(self.id)
+    
+    @property
+    def primary_email(self) -> Email | None:
+        return next((e for e in self.emails if e.primary), None)
     
     def check_password(self, password: str) -> bool:
         """
@@ -190,10 +245,16 @@ class User(Base):
             "active": self.active,
             "created_date": self.created_date.isoformat(),
             "modified_date": self.modified_date.isoformat(),
-            "email": self.email.email if self.email else None#,
+            "email": self.primary_email.email if self.primary_email else None#,
             #"accounts": [account.name for account in self.accounts],
             #"grants": [await grant.to_dict() for grant in self.grants]
         }
+    
+    async def set_primary_email(self, new_primary_email: Email, db_sesion):
+        for e in self.email:
+            e.primary = False
+        new_primary_email.primary = True
+        await db_sesion.commit()
 
     @staticmethod
     async def find(name: str, db_session):
@@ -292,14 +353,19 @@ class User(Base):
 
 class Grant(Base):
     __tablename__ = 'grant'
-    id: Mapped[int] = mapped_column(sa.Integer, sa.Identity(), primary_key=True)
+    id: Mapped[str] = mapped_column(
+        sa.String(36), 
+        primary_key=True, 
+        default=lambda: str(uuid.uuid4()), 
+        unique=True
+    )
     active: Mapped[bool] = mapped_column(default=True)
     granted_date: Mapped[datetime.datetime] = mapped_column(
         default=datetime.datetime.now(tz=datetime.timezone.utc))
-    role_id: Mapped[int] = mapped_column(sa.ForeignKey("role.id"))
-    user_id: Mapped[int] = mapped_column(sa.ForeignKey("user.id"))
+    role_id: Mapped[str] = mapped_column(sa.ForeignKey("role.id"))
+    user_id: Mapped[str] = mapped_column(sa.ForeignKey("user.id"))
     user: Mapped[User] = relationship('User', back_populates='grants', foreign_keys=[user_id])
-    account_id: Mapped[int] = mapped_column(sa.ForeignKey("account.id"), nullable=True)
+    account_id: Mapped[str] = mapped_column(sa.ForeignKey("account.id"), nullable=True)
     account: Mapped[Account] = relationship('Account', 
                                             back_populates='grants', 
                                             foreign_keys=[account_id],
@@ -328,13 +394,18 @@ class Grant(Base):
 
 class Event(Base):
     __tablename__ = 'event'
-    id: Mapped[int] = mapped_column(sa.Integer, sa.Identity(), primary_key=True, autoincrement=True)
+    id: Mapped[str] = mapped_column(
+        sa.String(36), 
+        primary_key=True, 
+        default=lambda: str(uuid.uuid4()), 
+        unique=True
+    )
     type: Mapped[str] = mapped_column(sa.String(50), nullable=False)
     description: Mapped[str] = mapped_column(sa.String(255), nullable=False)
     data: Mapped[dict] = mapped_column(sa.JSON, nullable=True)
     date: Mapped[datetime.datetime] = mapped_column(
         default=datetime.datetime.now(tz=datetime.timezone.utc))
-    user_id: Mapped[int] = mapped_column(sa.ForeignKey("user.id"))
+    user_id: Mapped[str] = mapped_column(sa.ForeignKey("user.id"))
     user: Mapped[User] = relationship('User')
     # account_id & account
 
@@ -354,10 +425,15 @@ class Event(Base):
 
 class UserInvite(Base):
     __tablename__ = 'user_invite'
-    id: Mapped[int] = mapped_column(sa.Integer, sa.Identity(), primary_key=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(sa.ForeignKey("user.id"))
+    id: Mapped[str] = mapped_column(
+        sa.String(36), 
+        primary_key=True, 
+        default=lambda: str(uuid.uuid4()), 
+        unique=True
+    )
+    user_id: Mapped[str] = mapped_column(sa.ForeignKey("user.id"))
     token: Mapped[str] = mapped_column(sa.String(255), unique=True, nullable=False)
-    invited_by_user_id: Mapped[int] = mapped_column(sa.ForeignKey("user.id"))
+    invited_by_user_id: Mapped[str] = mapped_column(sa.ForeignKey("user.id"))
     invite_date: Mapped[datetime.datetime] = mapped_column(
         default=datetime.datetime.now(tz=datetime.timezone.utc))
     accepted: Mapped[bool] = mapped_column(default=False)
