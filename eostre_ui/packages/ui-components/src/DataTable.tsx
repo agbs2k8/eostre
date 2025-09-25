@@ -18,7 +18,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 // Constants for sizing
 const DEFAULT_ROW_HEIGHT = 40; // px
-const DEFAULT_HEADER_HEIGHT = 50; // px
+const DEFAULT_HEADER_HEIGHT = 45; // px
 
 export interface DataTableProps extends Partial<GridOptions> {
   columnDefs: ColDef[];
@@ -59,7 +59,7 @@ export const DataTable: React.FC<DataTableProps> = ({
   maxVisibleRows,
   fixedHeight = 750,
   paginationPageSize = 15,
-  paginationPageSizeOptions = [5, 10, 15, 20, 50, 100],
+  paginationPageSizeOptions = [5, 10, 15, 20, 50],
   onRowClick,
   ...gridOptions
 }) => {
