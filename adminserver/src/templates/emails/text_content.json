@@ -1,0 +1,7 @@
+{
+    "email_validation": {
+        "required": ["name", "year", "verify_url"],
+        "subject": "Eostre - Please Verify Your Email",
+        "text": "Welcome $name.  Please navigate to $verify_url to authorize this email account. Eostre. (c)$year"
+    }
+}

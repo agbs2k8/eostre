@@ -15,6 +15,13 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 15
 REFRESH_TOKEN_EXPIRE_MINUTES = 10080
 CORS_ORIGIN = (os.getenv("CORS_ORIGIN", "http://localhost:3000"))
 
+# Email Sending Configs
+SMTP_SERVER = os.getenv("SMTP_SERVER", "http://127.0.0.1")
+SMTP_PORT = os.getenv("SMTP_PORT", 465)
+EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS", "admin@test.dev")
+EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD", "emailpassword")
+EMAIL_ENABLED = bool(os.getenv("EMAIL_ENABLED", False))
+
 # Handle Async vs Sync Database issues for Alembic
 DATABASE_URI = os.getenv("DATABASE_URI", "sqlite+aiosqlite:///adminserver.db")
 

@@ -37,7 +37,7 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(api_v1_bp)
 
-    logging.info(f"Registered blueprints: {[rule for rule in app.url_map.iter_rules()]}")
+    logging.debug(f"Registered blueprints: {[rule for rule in app.url_map.iter_rules()]}")
 
     # Schema
     QuartSchema(app, convert_casing=True)
