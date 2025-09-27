@@ -37,7 +37,7 @@ This is an async python API built around quart.
 
 - Development
 
-    `export QUART_APP=main.py && quart run  --debug`
+    `export QUART_APP=main.py && quart run  --reload`
 
 - Custom Host
 

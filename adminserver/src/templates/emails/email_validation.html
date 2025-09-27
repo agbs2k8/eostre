@@ -1,0 +1,13 @@
+{% extends "emails/base_email.html" %}
+
+{% block subject %}Please Validate Your Email{% endblock %}
+
+{% block content %}
+  <h2 style="color:#500000">Hi {{ name }},</h2>
+  <p>Thanks for signing up! Please validate your email by clicking below.</p>
+  <p>
+    <a href="{{ verify_url }}" style="background:#500000;color:#FEFEFE;padding:10px 15px;text-decoration:none;border-radius:4px;">
+      Verify Your Email
+    </a>
+  </p>
+{% endblock %}

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>{% block subject %}Default Subject{% endblock %}</title>
+    <style>
+      body { font-family: Arial, sans-serif; background: #1F1F1F; margin: 0; padding: 0; }
+      .container { max-width: 600px; margin: 0 auto; background: #FEFEFE; padding: 20px; }
+      .footer { font-size: 12px; color: #888; text-align: center; margin-top: 20px; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      {% block content %}{% endblock %}
+      <div class="footer">
+        &copy; {{ year }} Eostre
+      </div>
+    </div>
+  </body>
+</html>
