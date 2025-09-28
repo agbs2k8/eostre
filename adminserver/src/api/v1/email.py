@@ -1,7 +1,7 @@
 import datetime
 from quart import Blueprint, jsonify, g, request
 from src.services.auth_manager import auth_manager
-from src.services.smtp_handler import send_email, test_email
+from src.services.smtp_handler import send_email
 from src.models.models import User, Email, TokenEvent
 import config as cfg
 import logging
@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 email_bp = Blueprint("email_v1", __name__, url_prefix="/email")
 
 
-@email_bp.route("send_validate", methods=["POST"])
+@email_bp.route("send_validation", methods=["POST"])
 @auth_manager.jwt_required()
 async def send_validation():
     async with g.db_session as session:
@@ -22,7 +22,7 @@ async def send_validation():
             return jsonify({"error": "No email address provided"}), 400
         
         # Ensure that the provided email address is not already in use
-        if (existing := Email.find(new_email, session)):
+        if (existing := await Email.find(new_email, session)):
             if existing.user_id == user_id:
                 # If it belongs to the user in question, we can give them details
                 return jsonify({"error": "The provided email is already validated."}), 406
@@ -32,7 +32,7 @@ async def send_validation():
                 return jsonify({"error": "Unable to process the provided email address."}), 406
         
         # Look to see if we have an existing token for that user
-        if (te := TokenEvent.find(new_email)):
+        if (te := await TokenEvent.find(new_email, session)):
             if te.created_for == user_id:  # If the email & user_id match, reset the expiration
                 te.reset_expiration(user_id, hours_valid=2)
             else:
@@ -46,7 +46,8 @@ async def send_validation():
                             created_by = user_id, 
                             created_for = user_id,
                             hours_valid = 2)
-        await session.commit(te)
+        session.add(te)
+        await session.commit()
         token_url = await te.generate_url()
         logging.debug("token event updated and URL created.")
             
@@ -71,3 +72,16 @@ async def send_validation():
         else:
             return {"error": "unable to send message"}, 500
     
+
+@email_bp.route("validate", methods=["POST"])
+async def validate_token():
+    data = await request.get_json()
+    token = data.get('token')
+    if not token:
+        return jsonify({"error": "No token provided"}), 400
+    async with g.db_session as session:
+        accepted, message = await TokenEvent.accept_token(token, session)
+        if accepted:
+            return {"message": message}, 200
+        else:
+            return {"message": message}, 406

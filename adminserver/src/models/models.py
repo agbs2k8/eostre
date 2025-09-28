@@ -3,6 +3,7 @@ import asyncio
 import secrets
 import datetime
 from collections import defaultdict
+from typing import ClassVar
 import sqlalchemy
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -483,6 +484,10 @@ class Grant(Base):
 
 class TokenEvent(Base):
     __tablename__ = 'token_event'
+    """
+    Events for which we need to generate, store, validate, expire a one-time-use token
+    Supported types shown below as self.accepted_event_types
+    """
     id: Mapped[str] = mapped_column(
         sqlalchemy.String(36), 
         primary_key=True, 
@@ -497,6 +502,9 @@ class TokenEvent(Base):
     created_date: Mapped[datetime.datetime] = mapped_column(default=datetime.datetime.now(tz=datetime.timezone.utc))
     expire_date: Mapped[datetime.datetime] = mapped_column(default=(datetime.datetime.now(tz=datetime.timezone.utc)+datetime.timedelta(hours=2)))
     validated: Mapped[bool] = mapped_column(default=False)
+
+    # Not part of the SqlAlchemy table
+    accpeted_event_types: ClassVar[list[str]] = ["email"]
     
     def __init__(self, 
                  type: str, 
@@ -504,8 +512,10 @@ class TokenEvent(Base):
                  created_by: str, 
                  created_for: str = None,
                  hours_valid:int = 2):
+        if type not in self.accpeted_event_types:
+            raise ValueError(f"Invalid TokenEvent event `type` of {type}")
         self.event_type = type
-        self.event_key = key,
+        self.event_key = key
         self.created_by = created_by
         self.created_for = created_for if created_for else created_by
         self.token = secrets.token_urlsafe(32)
@@ -515,6 +525,17 @@ class TokenEvent(Base):
 
     def __repr__(self):
         return f"TokenEvent(id={self.id})"
+    
+    async def to_dict(self):
+        return {
+            "event_type": self.event_type,
+            "event_key": self.event_key,
+            "created_by": self.created_by,
+            "created_for": self.created_for,
+            "token": self.token,
+            "expire_date": self.expire_date,
+            "validated": self.validated
+        }
     
     async def generate_url(self):
         return f"{cfg.CORS_ORIGIN}/{self.event_type}/validate/?token={self.token}"
@@ -529,6 +550,19 @@ class TokenEvent(Base):
         self.token = secrets.token_urlsafe(32)
         self.validated = False
     
+    async def resolve_email(self, db_session):
+        """
+        Use a standard method to resolve/commit the email to the database
+        """
+        target_user = await User.get(self.created_for, db_session)
+        new_email = Email(email=self.event_key,
+                          user_id=self.created_for,
+                          user=target_user,
+                          validated=True)
+        db_session.add(new_email)
+        db_session.commit()
+        return self
+
     @staticmethod
     async def find(key: str, db_session):
         """
@@ -539,4 +573,24 @@ class TokenEvent(Base):
         result = await db_session.execute(sqlalchemy.select(TokenEvent).where(TokenEvent.event_key == key))
         return result.scalars().first()
 
+    @staticmethod
+    async def accept_token(token: str, db_session):
+        """
+        Given a Token, validate and complete the transaction
+        """
+        result = await db_session.execute(sqlalchemy.select(TokenEvent).where(TokenEvent.token == token))
+        te = result.scalars().first()
+
+        if te and te.expire_date > datetime.datetime.now():
+            match te.event_type:
+                case "email":
+                    await te.resolve_email(db_session)
+                    await db_session.delete(te)
+                    await db_session.commit()
+                    return True, "Email added to the account"
+
+                case _: 
+                    raise ValueError(f"TokenEvent type of {te.event_type} was not found")
+        else:
+            return False, "The provided token was not found or the expiration date on the token has passed."
         
