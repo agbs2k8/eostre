@@ -18,12 +18,15 @@ async def send_validation():
         # TODO - replace 400 here with proper pydantic validation
         data = await request.get_json()
         new_email = data.get('email')
+        target_user_id = data.get('target_user')
+        if not target_user_id:
+            target_user_id = user_id
         if not new_email:
             return jsonify({"error": "No email address provided"}), 400
         
         # Ensure that the provided email address is not already in use
         if (existing := await Email.find(new_email, session)):
-            if existing.user_id == user_id:
+            if existing.user_id == target_user_id:
                 # If it belongs to the user in question, we can give them details
                 return jsonify({"error": "The provided email is already validated."}), 406
             else:
@@ -33,7 +36,7 @@ async def send_validation():
         
         # Look to see if we have an existing token for that user
         if (te := await TokenEvent.find(new_email, session)):
-            if te.created_for == user_id:  # If the email & user_id match, reset the expiration
+            if te.created_for == target_user_id:  # If the email & user_id match, reset the expiration
                 te.reset_expiration(user_id, hours_valid=2)
             else:
                 # If the email and user_id don't match, we could have problems
@@ -44,7 +47,7 @@ async def send_validation():
             te = TokenEvent(type = "email", 
                             key = new_email,
                             created_by = user_id, 
-                            created_for = user_id,
+                            created_for = target_user_id,
                             hours_valid = 2)
         session.add(te)
         await session.commit()
@@ -82,6 +85,6 @@ async def validate_token():
     async with g.db_session as session:
         accepted, message = await TokenEvent.accept_token(token, session)
         if accepted:
-            return {"message": message}, 200
+            return {"result": message}, 200
         else:
-            return {"message": message}, 406
+            return {"result": message}, 406
