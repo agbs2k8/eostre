@@ -1,125 +1,136 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@ui-components/Button";
 import { ProtectedRoute } from "@utils/ProtectedRoute";
 import { useUser } from "@utils/userProvider";
-import { useAuth } from "@utils/authProvider";
+import ProfileEditDrawer from "./ProfileEditDrawer";
+import { AddEmailDrawer } from "@ui-components/AddEmailDrawer";
+
 
 export default function ProfilePage() {
   return (
     <ProtectedRoute>
-      <ProfileForm />
+      <ProfileContent />
     </ProtectedRoute>
   );
 }
 
-function ProfileForm() {
-  const { accessToken, user } = useAuth();
-  const { userProfile, loading, error, updateUserProfile } = useUser();
-
-  // Local state for editable fields
-  const [name, setName] = useState("");
-  const [personalName, setPersonalName] = useState("");
-  const [familyNames, setFamilyNames] = useState("");
-  const [displayName, setDisplayName] = useState("");
-  const [saving, setSaving] = useState(false);
-
-useEffect(() => {
-    if (userProfile) {
-      setName(userProfile.name);
-      setPersonalName(userProfile.personal_name ?? "");
-      setFamilyNames(userProfile.family_names ?? "");
-      setDisplayName(userProfile.display_name);
-    }
-  }, [userProfile]);
-
-async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!userProfile) return;
-
-    setSaving(true);
-    await updateUserProfile({
-      name,
-      personal_name: personalName || null,
-      family_names: familyNames || null,
-      display_name: displayName,
-    });
-    setSaving(false);
-  }
+function ProfileContent() {
+  const { userProfile, loading, error } = useUser();
+  const [isEditOpen, setEditOpen] = useState(false);
+  const [isAddEmailOpen, setAddEmailOpen] = useState(false);
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p className="text-red-500">{error}</p>;
-  if (!user) return <p>No profile data</p>;
+  if (!userProfile) return <p>No profile data</p>;
 
   return (
     <>
-        <div className="flex min-h-screen justify-center">
-          <form onSubmit={handleSubmit} className="w-80 rounded bg-brand-light text-brand-dark dark:bg-brand-dark dark:text-brand-light p-6 shadow space-y-4">
-            <h1 className="text-2xl font-bold">User Profile</h1>
-            {/* Editable fields */}
-            <div>
-              <label className="block font-medium bg-brand-light dark:bg-brand-dark dark:text-brand-light">Username</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="mt-1 block w-full border rounded p-2 dark:bg-brand-dark dark:text-brand-light"
-              />
-            </div>
-
-            <div>
-              <label className="block font-medium bg-brand-light dark:bg-brand-dark dark:text-brand-light">Personal Name</label>
-              <input
-                type="text"
-                value={personalName}
-                onChange={(e) => setPersonalName(e.target.value)}
-                className="mt-1 block w-full border rounded p-2 dark:bg-brand-dark dark:text-brand-light"
-              />
-            </div>
-
-            <div>
-              <label className="block font-medium bg-brand-light dark:bg-brand-dark dark:text-brand-light">Family Names</label>
-              <input
-                type="text"
-                value={familyNames}
-                onChange={(e) => setFamilyNames(e.target.value)}
-                className="mt-1 block w-full border rounded p-2 dark:bg-brand-dark dark:text-brand-light"
-              />
-            </div>
-
-            <div>
-              <label className="block font-medium bg-brand-light dark:bg-brand-dark dark:text-brand-light">Display Name</label>
-              <input
-                type="text"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                className="mt-1 block w-full border rounded p-2 dark:bg-brand-dark dark:text-brand-light"
-              />
-            </div>
-
-            {/* Read-only fields */}
-            <div>
-              <label className="block font-medium bg-brand-light dark:bg-brand-dark dark:text-brand-light">Type</label>
-              <p className="bg-brand-light dark:bg-brand-dark dark:text-brand-light">{userProfile?.type}</p>
-            </div>
-
-            <div>
-              <label className="block font-medium bg-brand-light dark:bg-brand-dark dark:text-brand-light">User Emails</label>
-              <p className="bg-brand-light dark:bg-brand-dark dark:text-brand-light">{userProfile?.emails?.map(e => e.email).join(", ") || "—"}</p>
-            </div>
-
-            <div>
-              <label className="block font-medium bg-brand-light dark:bg-brand-dark dark:text-brand-light">Created</label>
-              <p className="bg-brand-light dark:bg-brand-dark dark:text-brand-light">{new Date(userProfile.created_date).toLocaleString()}</p>
-            </div>
-
-            {/* Submit */}
-            <Button type="submit" aria-label="Submit">
-              Submit
+      <div className="font-sans min-h-screen p-8 sm:p-20 bg-brand-light text-brand-dark dark:bg-brand-dark dark:text-brand-light">
+        <main className="flex flex-col gap-8 w-full">
+          <div className="w-full flex items-center justify-between mb-6">
+            <h1 className="text-2xl font-bold text-brand-primary dark:text-accent-cyan">
+              {userProfile.display_name}
+            </h1>
+            <Button
+              onClick={() => setEditOpen(true)}
+              aria-label="Open Edit User Drawer"
+            >
+              Edit
             </Button>
-          </form>
-        </div>
+          </div>
+          <section>
+            <h2 className="text-lg font-semibold mb-2">Profile Information</h2>
+            <ul className="space-y-1">
+              <li><span className="font-medium">Username:</span> {userProfile.name}</li>
+              {userProfile.personal_name && (
+                <li><span className="font-medium">Personal Name:</span> {userProfile.personal_name}</li>
+              )}
+              {userProfile.family_names && (
+                <li><span className="font-medium">Family Names:</span> {userProfile.family_names}</li>
+              )}
+              <li><span className="font-medium">Type:</span> {userProfile.type}</li>
+              <li><span className="font-medium">Created:</span> {new Date(userProfile.created_date).toLocaleString()}</li>
+            </ul>
+          </section>
+
+          {/* Emails table */}
+          <section>
+            <div className="w-full flex items-center justify-between mb-6">
+              <h2 className="text-lg font-semibold mb-2">Emails</h2>
+              <Button
+                onClick={() => setAddEmailOpen(true)}
+                size="sm"
+                aria-label="Open Add Email Drawer"
+              >
+                + Add
+              </Button>
+            </div>
+            <AddEmailDrawer
+              isOpen={isAddEmailOpen}
+              onClose={() => setAddEmailOpen(false)}
+            />
+            <div className="overflow-x-auto">
+              <table className="min-w-full border border-brand-dark dark:border-brand-light rounded-lg">
+                <thead className="bg-brand-dark text-brand-light dark:bg-brand-light dark:text-brand-dark">
+                  <tr>
+                    <th className="px-4 py-2 text-left">Email</th>
+                    <th className="px-4 py-2 text-left">Primary</th>
+                    <th className="px-4 py-2 text-left">Validated</th>
+                    <th className="px-4 py-2 text-left">Created</th>
+                    <th className="px-4 py-2 text-left">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {userProfile.emails.map((email: any) => (
+                    <tr
+                      key={email.id}
+                      className="border-t border-brand-dark dark:border-brand-light"
+                    >
+                      <td className="px-4 py-2">{email.email}</td>
+                      <td className="px-4 py-2">
+                        {email.primary ? (
+                          <span className="text-green-600 font-medium">✔</span>
+                        ) : (
+                          ""
+                        )}
+                      </td>
+                      <td className="px-4 py-2">
+                        {email.validated ? (
+                          <span className="text-green-600 font-medium">✔</span>
+                        ) : (
+                          <span className="text-red-500 font-medium">✘</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-2">
+                        {new Date(email.created_date).toLocaleDateString()}
+                      </td>
+                      <td className="px-4 py-2">
+                        {!email.primary && (
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => console.log("TODO: setPrimary", email.id)}
+                          >
+                            Make Primary
+                          </Button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </main>
+        {isEditOpen && (
+          <ProfileEditDrawer
+            userProfile={userProfile}
+            onClose={() => setEditOpen(false)}
+          />
+        )}
+      </div>
     </>
   );
 }

@@ -39,7 +39,12 @@ export const apiClient = async <T>(
   }
 
   if (!res.ok) {
-    throw new Error(`Error ${res.status}: ${res.statusText}`);
+    let errorData: any = {};
+    try {
+      errorData = await res.json();
+    } catch {
+    }
+    throw { status: res.status, ...errorData };
   }
 
   return res.json();
