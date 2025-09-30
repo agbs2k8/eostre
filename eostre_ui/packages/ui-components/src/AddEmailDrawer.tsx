@@ -84,7 +84,7 @@ export function AddEmailDrawer({
             placeholder="Enter new email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-primary"
+            className="mt-1 p-2 border rounded bg-brand-light dark:bg-brand-dark dark:text-brand-light"
             required
           />
 
